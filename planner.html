@@ -186,11 +186,14 @@
       .prayer-card.type-person{border-left-color:#4285F4}
       .prayer-card.type-group{border-left-color:#FF9800}
       .prayer-card.dragging{opacity:.5}
+      .prayer-drag-item{position:relative;min-width:0}
       .prayer-drag-item.dragging{opacity:.5}
+      .prayer-drag-item.touch-dragging{z-index:30;transform:scale(1.01);box-shadow:0 9px 24px rgba(44,51,64,.16)}
+      .prayer-drag-item.touch-drop-target:before{content:"";position:absolute;left:8px;right:8px;top:-3px;height:3px;border-radius:99px;background:var(--brand);z-index:4}
       .prayer-type-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;color:#fff}
       .prayer-type-badge.person{background:#4285F4}
       .prayer-type-badge.group{background:#FF9800}
-      .prayer-drag-handle{border:0;background:#f0f2f5;color:#9aa3ad;width:26px;height:26px;border-radius:8px;cursor:grab;font-size:13px;display:grid;place-items:center;flex:none}
+      .prayer-drag-handle{border:0;background:#f0f2f5;color:#9aa3ad;width:26px;height:26px;border-radius:8px;cursor:grab;font-size:13px;display:grid;place-items:center;flex:none;touch-action:pan-y;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
       .prayer-drag-handle:active{cursor:grabbing}
       .prayer-view-filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
       .prayer-head-row{display:flex;align-items:center;gap:8px}
@@ -237,6 +240,14 @@
         .task-details{margin-left:28px;margin-right:4px}
         .task-priority-pills{gap:6px}
         .task-priority-pill{flex:1;min-width:68px}
+        .prayer-grid,.prayer-drag-item,.prayer-card{width:100%;max-width:100%;min-width:0}
+        .prayer-card .card-head.prayer-head-row{display:grid;grid-template-columns:26px auto minmax(0,1fr) auto;gap:6px;padding:12px}
+        .prayer-head-row>.btn.danger{padding:6px 8px;white-space:nowrap}
+        .prayer-item{min-width:0;padding:10px 12px}
+        .prayer-item-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 6px;align-items:center}
+        .prayer-item-main{min-width:0}
+        .prayer-item-time{grid-column:1;grid-row:2;justify-self:end;padding-right:2px}
+        .prayer-item-row>.btn{grid-column:2;grid-row:1 / span 2;align-self:center}
       }
     </style>
   </head>
@@ -245,6 +256,16 @@
     <script type="text/babel">
       const { useEffect, useMemo, useRef, useState } = React;
       const STORAGE_KEY = "hamin-planner-v5";
+      const VIEW_STORAGE_KEY = "grace-planner-current-view";
+      const VALID_VIEWS = ["day", "week", "month", "memo", "prayer"];
+      const loadCurrentView = () => {
+        try {
+          const saved = window.sessionStorage.getItem(VIEW_STORAGE_KEY);
+          return VALID_VIEWS.includes(saved) ? saved : "day";
+        } catch {
+          return "day";
+        }
+      };
       const DEFAULT_PROJECT_ID = "project-inbox";
       const DEFAULT_SIDEBAR_ORDER = ["miniWeek", "projects", "faith", "scratch", "data"];
       const DEFAULT_DAY_START = 360;
@@ -3635,7 +3656,7 @@
         );
       }
       const PRESET_PRAYER_TAGS = ["가족", "회사", "교회", "지인"];
-      function PrayerGroup({ group, setStore, toast, onDragStart, onDragEnd }) {
+      function PrayerGroup({ group, setStore, toast, onDragStart, onDragEnd, onTouchStart }) {
         const [title, setTitle] = useState(""),
           [note, setNote] = useState(""),
           [nameDraft, setNameDraft] = useState(group.name),
@@ -3708,10 +3729,12 @@
                 type="button"
                 className="prayer-drag-handle"
                 draggable
-                title="순서 변경"
-                aria-label="순서 변경"
+                title="길게 눌러 순서 변경"
+                aria-label="길게 눌러 순서 변경"
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
+                onTouchStart={onTouchStart}
+                onContextMenu={(event) => event.preventDefault()}
               >
                 ⠿
               </button>
@@ -3785,8 +3808,8 @@
             </div>
             {sortedItems.map((item) => (
               <div className={`prayer-item ${item.answered ? "answered" : ""}`} key={item.id}>
-                <div className="row" style={{ justifyContent: "space-between" }}>
-                  <div className="row" style={{ gap: 8, flex: 1, minWidth: 0 }}>
+                <div className="row prayer-item-row" style={{ justifyContent: "space-between" }}>
+                  <div className="row prayer-item-main" style={{ gap: 8, flex: 1, minWidth: 0 }}>
                     <input
                       type="checkbox"
                       checked={!!item.answered}
@@ -3848,9 +3871,14 @@
           [viewMode, setViewMode] = useState("all"),
           [search, setSearch] = useState(""),
           [selectedTags, setSelectedTags] = useState([]),
-          [dragId, setDragId] = useState(null);
+          [dragId, setDragId] = useState(null),
+          [touchDragId, setTouchDragId] = useState(null),
+          [touchDropId, setTouchDropId] = useState(null);
         const composingRef = useRef(false);
         const lastAddRef = useRef(0);
+        const touchGestureRef = useRef(null);
+        const touchLongPressRef = useRef(null);
+        const reorderTouchRef = useRef(null);
         const add = () => {
           if (composingRef.current) return;
           const trimmed = name.trim();
@@ -3897,11 +3925,11 @@
         }));
         const toggleTag = (t) =>
           setSelectedTags((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
-        const reorder = (targetGroupId) => {
-          if (!dragId || dragId === targetGroupId) return;
+        const reorderGroups = (fromGroupId, targetGroupId) => {
+          if (!fromGroupId || fromGroupId === targetGroupId) return;
           setStore((s) => {
             const list = sortByOrder(s.prayerGroups);
-            const from = list.findIndex((g) => g.id === dragId);
+            const from = list.findIndex((g) => g.id === fromGroupId);
             const to = list.findIndex((g) => g.id === targetGroupId);
             if (from < 0 || to < 0) return s;
             const moved = [...list];
@@ -3911,6 +3939,93 @@
           });
           setDragId(null);
         };
+        const reorder = (targetGroupId) => reorderGroups(dragId, targetGroupId);
+        reorderTouchRef.current = reorderGroups;
+        const clearTouchLongPress = () => {
+          if (!touchLongPressRef.current) return;
+          window.clearTimeout(touchLongPressRef.current);
+          touchLongPressRef.current = null;
+        };
+        const finishTouchDrag = () => {
+          clearTouchLongPress();
+          touchGestureRef.current = null;
+          setTouchDragId(null);
+          setTouchDropId(null);
+        };
+        const handlePrayerTouchStart = (event, groupId) => {
+          if (event.touches.length !== 1) return;
+          event.stopPropagation();
+          clearTouchLongPress();
+          const touch = event.touches[0];
+          touchGestureRef.current = {
+            touchId: touch.identifier,
+            groupId,
+            startX: touch.clientX,
+            startY: touch.clientY,
+            active: false,
+            lastTargetId: null,
+          };
+          touchLongPressRef.current = window.setTimeout(() => {
+            touchLongPressRef.current = null;
+            const gesture = touchGestureRef.current;
+            if (!gesture) return;
+            gesture.active = true;
+            setTouchDragId(groupId);
+            if (window.navigator?.vibrate) window.navigator.vibrate(25);
+          }, 450);
+        };
+        useEffect(() => {
+          const findTouch = (touches, id) =>
+            Array.from(touches).find((touch) => touch.identifier === id);
+          const handleTouchMove = (event) => {
+            const gesture = touchGestureRef.current;
+            if (!gesture) return;
+            const touch = findTouch(event.touches, gesture.touchId);
+            if (!touch) return;
+            const deltaX = touch.clientX - gesture.startX;
+            const deltaY = touch.clientY - gesture.startY;
+            if (!gesture.active) {
+              if (Math.hypot(deltaX, deltaY) > 9) finishTouchDrag();
+              return;
+            }
+            if (event.cancelable) event.preventDefault();
+            const target = document
+              .elementFromPoint(touch.clientX, touch.clientY)
+              ?.closest(".prayer-drag-item");
+            const targetId = target?.dataset.prayerGroupId || null;
+            if (
+              targetId &&
+              targetId !== gesture.groupId &&
+              targetId !== gesture.lastTargetId
+            ) {
+              gesture.lastTargetId = targetId;
+              setTouchDropId(targetId);
+            }
+          };
+          const handleTouchEnd = (event) => {
+            const gesture = touchGestureRef.current;
+            if (!gesture) return;
+            if (findTouch(event.touches, gesture.touchId)) return;
+            if (gesture.active && gesture.lastTargetId) {
+              reorderTouchRef.current?.(
+                gesture.groupId,
+                gesture.lastTargetId
+              );
+            }
+            finishTouchDrag();
+          };
+          document.addEventListener("touchmove", handleTouchMove, {
+            passive: false,
+          });
+          document.addEventListener("touchend", handleTouchEnd);
+          document.addEventListener("touchcancel", handleTouchEnd);
+          return () => {
+            document.removeEventListener("touchmove", handleTouchMove);
+            document.removeEventListener("touchend", handleTouchEnd);
+            document.removeEventListener("touchcancel", handleTouchEnd);
+            clearTouchLongPress();
+          };
+        }, []);
         return (
           <div className="stack">
             <div className="hero">
@@ -4014,7 +4129,10 @@
               {groups.map((g) => (
                 <div
                   key={g.id}
-                  className={`prayer-drag-item ${dragId === g.id ? "dragging" : ""}`}
+                  className={`prayer-drag-item ${dragId === g.id ? "dragging" : ""} ${
+                    touchDragId === g.id ? "touch-dragging" : ""
+                  } ${touchDropId === g.id ? "touch-drop-target" : ""}`}
+                  data-prayer-group-id={g.id}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => reorder(g.id)}
                 >
@@ -4024,6 +4142,9 @@
                     toast={toast}
                     onDragStart={() => setDragId(g.id)}
                     onDragEnd={() => setDragId(null)}
+                    onTouchStart={(event) =>
+                      handlePrayerTouchStart(event, g.id)
+                    }
                   />
                 </div>
               ))}
@@ -4034,7 +4155,7 @@
       }
       function App() {
         const [store, setStore] = useState(loadStore),
-          [view, setView] = useState("day"),
+          [view, setView] = useState(loadCurrentView),
           [date, setDate] = useState(() => {
             const d = new Date();
             d.setHours(0, 0, 0, 0);
@@ -4077,6 +4198,13 @@
           return () =>
             window.removeEventListener("message", receiveCloudStore);
         }, []);
+        useEffect(() => {
+          try {
+            window.sessionStorage.setItem(VIEW_STORAGE_KEY, view);
+          } catch {
+            // 현재 보기 저장을 사용할 수 없어도 플래너 기능은 계속 유지합니다.
+          }
+        }, [view]);
         useEffect(() => {
           setSaveState("저장 중");
           const id = setTimeout(() => {

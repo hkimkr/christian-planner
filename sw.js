@@ -1,11 +1,11 @@
-const CACHE_NAME = "grace-planner-pages-v7-7";
+const CACHE_NAME = "grace-planner-pages-v7-8";
 const BASE_URL = new URL("./", self.location.href);
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./planner.html?v=7-7",
+  "./planner.html?v=7-8",
   "./app.css",
-  "./app.js?v=7-7",
+  "./app.js?v=7-8",
   "./manifest.webmanifest?v=7-4",
   "./icon.png?v=7-4",
 ].map((path) => new URL(path, BASE_URL).href);
