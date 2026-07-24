@@ -212,6 +212,32 @@
       .month-zoom-inner .calendar{min-width:700px}
       .month-zoom-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 2px 10px}
       .month-zoom-toolbar .tb-zoom-value{min-width:40px;text-align:center;font-size:11px;font-weight:800;color:var(--muted)}
+      .brand-mark.brand-mark-image{overflow:hidden;background:#fff;border:1px solid #edf0f4;padding:0}
+      .brand-mark-image img{display:block;width:100%;height:100%;object-fit:cover}
+      .task-item{position:relative;border-radius:11px;transition:transform .16s,box-shadow .16s}
+      .task-item.touch-dragging{z-index:30;transform:scale(1.015);box-shadow:0 9px 24px rgba(44,51,64,.16)}
+      .task-item.touch-dragging .task{background:#fff;opacity:.82}
+      .task-item.touch-drop-target:before{content:"";position:absolute;left:6px;right:6px;top:-2px;height:3px;border-radius:99px;background:var(--brand);z-index:3}
+      .task.is-expanded{background:#f7f9ff}
+      .task-text{cursor:pointer}
+      .task-grip{touch-action:pan-y;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+      .task-details{margin:0 6px 8px 33px;padding:11px 12px 12px;border:1px solid #e1e6f5;border-radius:0 0 13px 13px;background:#f8faff;animation:taskDetailsIn .16s ease}
+      @keyframes taskDetailsIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+      .task-details-head{display:flex;align-items:center;gap:7px;margin-bottom:8px;color:#657184;font-size:12px;font-weight:800}
+      .task-details-head:before{content:"☰";font-size:14px;color:#8d98aa}
+      .task-detail-note{display:block;width:100%;min-height:68px;resize:vertical;border:1px solid #dfe4ed;border-radius:11px;background:#fff;padding:9px 10px;font-size:13px;line-height:1.55}
+      .task-detail-note::placeholder{color:#a3abb7}
+      .task-priority-pills{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+      .task-priority-pill{border:1px solid #d7dce4;background:#fff;color:#657184;border-radius:99px;min-height:34px;padding:6px 13px;font-size:12px;font-weight:750}
+      .task-priority-pill.active{color:#fff;border-color:transparent}
+      .task-priority-pill.high.active{background:#e6a227}
+      .task-priority-pill.normal.active{background:#657184}
+      .task-priority-pill.low.active{background:#6e8bdc}
+      @media(max-width:760px){
+        .task-details{margin-left:28px;margin-right:4px}
+        .task-priority-pills{gap:6px}
+        .task-priority-pill{flex:1;min-width:68px}
+      }
     </style>
   </head>
   <body>
@@ -1910,6 +1936,12 @@
       function TaskBoard({ day, projects, updateDay, onAddToSchedule }) {
         const tasks = day.todos || [];
         const [dragTaskId, setDragTaskId] = useState(null);
+        const [expandedTaskId, setExpandedTaskId] = useState(null);
+        const [touchDragId, setTouchDragId] = useState(null);
+        const [touchDropId, setTouchDropId] = useState(null);
+        const touchGestureRef = useRef(null);
+        const touchLongPressRef = useRef(null);
+        const reorderTouchRef = useRef(null);
         const patch = (id, next) =>
           updateDay((d) => ({ ...d, todos: d.todos.map((t) => (t.id === id ? { ...t, ...next } : t)) }));
         const remove = (id) => {
@@ -1936,6 +1968,98 @@
           });
           setDragTaskId(null);
         };
+        reorderTouchRef.current = reorderInProject;
+        const clearTouchLongPress = () => {
+          if (!touchLongPressRef.current) return;
+          window.clearTimeout(touchLongPressRef.current);
+          touchLongPressRef.current = null;
+        };
+        const finishTouchDrag = () => {
+          clearTouchLongPress();
+          touchGestureRef.current = null;
+          setTouchDragId(null);
+          setTouchDropId(null);
+        };
+        const handleGripTouchStart = (event, task, projectId) => {
+          if (event.touches.length !== 1) return;
+          event.stopPropagation();
+          clearTouchLongPress();
+          const touch = event.touches[0];
+          touchGestureRef.current = {
+            touchId: touch.identifier,
+            taskId: task.id,
+            projectId,
+            startX: touch.clientX,
+            startY: touch.clientY,
+            active: false,
+            lastTargetId: null,
+          };
+          touchLongPressRef.current = window.setTimeout(() => {
+            touchLongPressRef.current = null;
+            const gesture = touchGestureRef.current;
+            if (!gesture) return;
+            gesture.active = true;
+            setExpandedTaskId(null);
+            setTouchDragId(task.id);
+            if (window.navigator?.vibrate) window.navigator.vibrate(25);
+          }, 450);
+        };
+        const handleTaskClick = (event, taskId) => {
+          if (touchGestureRef.current?.active) return;
+          if (
+            event.target.closest(
+              ".task-grip, input[type=checkbox], .star, .priority, .btn"
+            )
+          )
+            return;
+          setExpandedTaskId((current) => (current === taskId ? null : taskId));
+        };
+        useEffect(() => {
+          const findTouch = (touches, id) =>
+            Array.from(touches).find((touch) => touch.identifier === id);
+          const handleTouchMove = (event) => {
+            const gesture = touchGestureRef.current;
+            if (!gesture) return;
+            const touch = findTouch(event.touches, gesture.touchId);
+            if (!touch) return;
+            const deltaX = touch.clientX - gesture.startX;
+            const deltaY = touch.clientY - gesture.startY;
+            if (!gesture.active) {
+              if (Math.hypot(deltaX, deltaY) > 9) finishTouchDrag();
+              return;
+            }
+            if (event.cancelable) event.preventDefault();
+            const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest(".task-item");
+            const targetId =
+              target?.dataset.projectId === gesture.projectId ? target.dataset.taskId : null;
+            if (targetId && targetId !== gesture.taskId && targetId !== gesture.lastTargetId) {
+              gesture.lastTargetId = targetId;
+              setTouchDropId(targetId);
+            }
+          };
+          const handleTouchEnd = (event) => {
+            const gesture = touchGestureRef.current;
+            if (!gesture) return;
+            if (findTouch(event.touches, gesture.touchId)) return;
+            if (gesture.active && gesture.lastTargetId) {
+              reorderTouchRef.current?.(
+                gesture.projectId,
+                gesture.taskId,
+                gesture.lastTargetId
+              );
+            }
+            finishTouchDrag();
+          };
+          document.addEventListener("touchmove", handleTouchMove, { passive: false });
+          document.addEventListener("touchend", handleTouchEnd);
+          document.addEventListener("touchcancel", handleTouchEnd);
+          return () => {
+            document.removeEventListener("touchmove", handleTouchMove);
+            document.removeEventListener("touchend", handleTouchEnd);
+            document.removeEventListener("touchcancel", handleTouchEnd);
+            clearTouchLongPress();
+          };
+        }, []);
         return (
           <div className="stack">
             {projects
@@ -1954,62 +2078,118 @@
                   <div className="task-list">
                     {sortByOrder(tasks.filter((t) => t.projectId === p.id)).map((t) => (
                       <div
-                        className={`task ${t.done ? "done" : ""} ${t.priority === "high" ? "priority-high" : ""} ${
-                          dragTaskId === t.id ? "dragging" : ""
-                        }`}
                         key={t.id}
-                        draggable
-                        onDragStart={() => setDragTaskId(t.id)}
-                        onDragEnd={() => setDragTaskId(null)}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={() => reorderInProject(p.id, dragTaskId, t.id)}
+                        className={`task-item ${touchDragId === t.id ? "touch-dragging" : ""} ${
+                          touchDropId === t.id ? "touch-drop-target" : ""
+                        }`}
+                        data-task-id={t.id}
+                        data-project-id={p.id}
                       >
-                        <button type="button" className="task-grip" title="순서 변경" aria-label="순서 변경">
-                          ⠿
-                        </button>
-                        <input
-                          type="checkbox"
-                          aria-label={`${t.text} 완료`}
-                          checked={!!t.done}
-                          onChange={() => patch(t.id, { done: !t.done, focus: t.done ? t.focus : false })}
-                        />
-                        <button
-                          className={`star ${t.focus ? "on" : ""}`}
-                          title="오늘의 핵심으로 지정"
-                          onClick={() => toggleFocus(t)}
+                        <div
+                          className={`task ${t.done ? "done" : ""} ${
+                            t.priority === "high" ? "priority-high" : ""
+                          } ${dragTaskId === t.id ? "dragging" : ""} ${
+                            expandedTaskId === t.id ? "is-expanded" : ""
+                          }`}
+                          draggable
+                          aria-expanded={expandedTaskId === t.id}
+                          onClick={(event) => handleTaskClick(event, t.id)}
+                          onDragStart={() => {
+                            setExpandedTaskId(null);
+                            setDragTaskId(t.id);
+                          }}
+                          onDragEnd={() => setDragTaskId(null)}
+                          onDragOver={(event) => event.preventDefault()}
+                          onDrop={() => reorderInProject(p.id, dragTaskId, t.id)}
                         >
-                          ★
-                        </button>
-                        <input
-                          className="task-text"
-                          value={t.text}
-                          onChange={(e) => patch(t.id, { text: e.target.value })}
-                        />
-                        <select
-                          className="priority"
-                          aria-label="우선순위"
-                          value={t.priority || "normal"}
-                          onChange={(e) => patch(t.id, { priority: e.target.value })}
-                        >
-                          <option value="high">중요</option>
-                          <option value="normal">보통</option>
-                          <option value="low">낮음</option>
-                        </select>
-                        <button
-                          className="btn soft btn-add-mini"
-                          title="시간표에 추가"
-                          aria-label="시간표에 추가"
-                          onClick={() => onAddToSchedule?.(t, p.color)}
-                        >
-                          +
-                        </button>
-                        <button
-                          className="btn ghost danger"
-                          aria-label={`${t.text} 삭제`}
-                          onClick={() => remove(t.id)}
-                        >
-                          ×
-                        </button>
+                          <button
+                            type="button"
+                            className="task-grip"
+                            title="길게 눌러 순서 변경"
+                            aria-label="길게 눌러 순서 변경"
+                            onTouchStart={(event) => handleGripTouchStart(event, t, p.id)}
+                            onContextMenu={(event) => event.preventDefault()}
+                          >
+                            ⠿
+                          </button>
+                          <input
+                            type="checkbox"
+                            aria-label={`${t.text} 완료`}
+                            checked={!!t.done}
+                            onChange={() =>
+                              patch(t.id, { done: !t.done, focus: t.done ? t.focus : false })
+                            }
+                          />
+                          <button
+                            className={`star ${t.focus ? "on" : ""}`}
+                            title="오늘의 핵심으로 지정"
+                            onClick={() => toggleFocus(t)}
+                          >
+                            ★
+                          </button>
+                          <input
+                            className="task-text"
+                            value={t.text}
+                            onChange={(event) => patch(t.id, { text: event.target.value })}
+                            aria-label={`${t.text} 내용`}
+                          />
+                          <select
+                            className="priority"
+                            aria-label="우선순위"
+                            value={t.priority || "normal"}
+                            onChange={(event) => patch(t.id, { priority: event.target.value })}
+                          >
+                            <option value="high">중요</option>
+                            <option value="normal">보통</option>
+                            <option value="low">낮음</option>
+                          </select>
+                          <button
+                            className="btn soft btn-add-mini"
+                            title="시간표에 추가"
+                            aria-label="시간표에 추가"
+                            onClick={() => onAddToSchedule?.(t, p.color)}
+                          >
+                            +
+                          </button>
+                          <button
+                            className="btn ghost danger"
+                            aria-label={`${t.text} 삭제`}
+                            onClick={() => remove(t.id)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                        {expandedTaskId === t.id && (
+                          <div className="task-details" onClick={(event) => event.stopPropagation()}>
+                            <div className="task-details-head">세부정보</div>
+                            <textarea
+                              className="task-detail-note"
+                              value={t.details || ""}
+                              onChange={(event) => patch(t.id, { details: event.target.value })}
+                              placeholder="이 일정의 세부 내용을 적어보세요"
+                              aria-label={`${t.text} 세부 내용`}
+                            />
+                            <div className="task-priority-pills" aria-label="중요도 선택">
+                              {[
+                                ["high", "중요"],
+                                ["normal", "보통"],
+                                ["low", "낮음"],
+                              ].map(([value, label]) => (
+                                <button
+                                  key={value}
+                                  type="button"
+                                  className={`task-priority-pill ${value} ${
+                                    (t.priority || "normal") === value ? "active" : ""
+                                  }`}
+                                  aria-pressed={(t.priority || "normal") === value}
+                                  onClick={() => patch(t.id, { priority: value })}
+                                >
+                                  {label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -3873,7 +4053,9 @@
             <header className="header">
               <div className="header-inner">
                 <div className="brand">
-                  <span className="brand-mark">✦</span>
+                  <span className="brand-mark brand-mark-image">
+                    <img src="./icon.png?v=7-4" alt="" aria-hidden="true" />
+                  </span>
                   <span>
                     <strong>은혜의 하루</strong>
                     <small>Christian Planner</small>

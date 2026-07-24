@@ -1,13 +1,13 @@
-const CACHE_NAME = "grace-planner-pages-v7-3";
+const CACHE_NAME = "grace-planner-pages-v7-4";
 const BASE_URL = new URL("./", self.location.href);
 const APP_SHELL = [
   "./",
   "./index.html",
   "./planner.html",
   "./app.css",
-  "./app.js?v=7-2",
-  "./manifest.webmanifest?v=7-3",
-  "./icon.png?v=7-3",
+  "./app.js?v=7-4",
+  "./manifest.webmanifest?v=7-4",
+  "./icon.png?v=7-4",
 ].map((path) => new URL(path, BASE_URL).href);
 
 self.addEventListener("install", (event) => {
