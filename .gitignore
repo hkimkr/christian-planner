@@ -1,0 +1,27 @@
+# ── 개인 플래너 데이터 (GitHub에 올리지 않음) ──
+planner-export.json
+*-export.json
+grace-planner-*.json
+*.backup.json
+
+# Supabase / 환경 변수 (나중에 연동 시)
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 에디터 / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 임시 / 로그
+*.log
+*.tmp
+.cache/

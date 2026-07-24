@@ -1,0 +1,19 @@
+{
+  "name": "은혜의 하루 · 크리스찬 플래너",
+  "short_name": "은혜의 하루",
+  "description": "컴퓨터와 휴대폰에서 동기화되는 크리스찬 플래너",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#5b7cfa",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
