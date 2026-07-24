@@ -1,0 +1,3940 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#5b7cfa" />
+    <title>은혜의 하루 · 크리스찬 플래너</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      :root{--ink:#2c3340;--muted:#8b95a1;--line:#e8ecf0;--paper:#ffffff;--bg:#f7f8fa;--brand:#5b7cfa;--brand2:#eef2ff;--gold:#f5a623;--danger:#e85d5d;--shadow:0 12px 35px rgba(44,51,64,.07);--high-bg:#fff8e6;--high-line:#ffe0a3}
+      *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid rgba(91,124,250,.25);outline-offset:2px}button:disabled{opacity:.45;cursor:not-allowed}
+      .app{min-height:100vh}.header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}.header-inner{max-width:1480px;margin:auto;padding:12px 22px;display:flex;align-items:center;gap:22px}.brand{display:flex;align-items:center;gap:10px;min-width:max-content}.brand-mark{width:36px;height:36px;border-radius:12px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:18px}.brand strong{display:block}.brand small{display:block;color:var(--muted);font-size:11px}.nav{display:flex;gap:4px;padding:4px;background:#f0f2f5;border-radius:13px}.nav button{border:0;background:transparent;padding:8px 13px;border-radius:10px;font-size:13px;font-weight:700;color:var(--muted)}.nav button.active{background:#fff;color:var(--brand);box-shadow:0 2px 8px rgba(44,51,64,.08)}.header-actions{margin-left:auto;display:flex;align-items:center;gap:8px}.save-state{font-size:12px;color:var(--muted);min-width:58px;text-align:right}.date-nav{display:flex;align-items:center;gap:7px}.date-nav strong{min-width:150px;text-align:center;font-size:14px}
+      .shell{max-width:1480px;margin:auto;padding:22px;display:grid;grid-template-columns:320px minmax(0,1fr);gap:20px}.sidebar{display:flex;flex-direction:column;gap:14px}.sticky{position:sticky;top:86px}.main{min-width:0}.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:0 2px 12px rgba(37,55,46,.035)}.card-pad{padding:18px}.card-head{padding:15px 18px;border-bottom:1px solid #edf0ed;display:flex;justify-content:space-between;align-items:center;gap:12px}.card-head h2,.card-head h3{margin:0;font-size:15px}.eyebrow{color:var(--brand);font-weight:800;font-size:11px;letter-spacing:.09em;text-transform:uppercase}.page-title{margin:3px 0 0;font-family:Georgia,"Noto Serif KR",serif;font-size:28px;line-height:1.25}.page-sub{color:var(--muted);font-size:13px;margin-top:5px}.section-title{margin:0 0 12px;font-size:17px}.muted{color:var(--muted)}.tiny{font-size:11px}.small{font-size:13px}.grid{display:grid;gap:16px}.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.stack{display:flex;flex-direction:column;gap:12px}.row{display:flex;align-items:center;gap:9px}.between{justify-content:space-between}.wrap{flex-wrap:wrap}.grow{flex:1;min-width:0}.spacer{height:16px}
+      .btn{min-height:38px;border:1px solid var(--line);background:#fff;padding:7px 12px;border-radius:11px;font-size:13px;font-weight:700;transition:.16s}.btn:hover{border-color:#aab9b0;background:#f8faf8}.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}.btn.soft{background:var(--brand2);border-color:transparent;color:var(--brand)}.btn.ghost{background:transparent;border-color:transparent}.btn.danger{color:var(--danger)}.icon-btn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:#fff;display:grid;place-items:center}.field{width:100%;border:1px solid #d7ded9;background:#fff;border-radius:11px;padding:9px 11px;min-height:40px}.field:hover{border-color:#b5c1ba}.field::placeholder{color:#a2aaa5}.label{display:block;font-size:12px;font-weight:800;margin-bottom:6px;color:#566159}.textarea{min-height:92px;resize:vertical}.segmented{display:inline-flex;background:#edf1ed;border-radius:11px;padding:3px}.segmented button{border:0;background:transparent;padding:6px 10px;border-radius:8px;font-size:12px}.segmented button.active{background:#fff;color:var(--brand);font-weight:800}.divider{height:1px;background:var(--line);margin:4px 0}.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed #ccd5cf;border-radius:13px;background:#fafbf9}
+      .week-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.day-dot{border:0;background:transparent;border-radius:11px;padding:7px 2px;color:var(--muted)}.day-dot span{display:block;font-size:10px}.day-dot b{display:grid;place-items:center;margin:3px auto 0;width:28px;height:28px;border-radius:50%;font-size:12px}.day-dot.active b{background:var(--brand);color:#fff}.day-dot.today{background:var(--brand2);color:var(--brand)}
+      .project-list{display:flex;flex-direction:column;gap:10px}.project-block{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#fff}.project-row{display:flex;align-items:center;gap:8px;padding:8px 9px;background:#f8faf8}.project-row:hover{background:#f2f5f2}.project-row>input:not(.color-select){border:0;background:transparent;width:100%;min-width:0;font-size:13px;font-weight:750}.project-row input.color-select{width:24px;min-width:24px;height:24px;padding:0;border:0;background:transparent}.project-week-tasks{padding:5px 8px 8px;display:flex;flex-direction:column;gap:3px}.sidebar-task{display:flex;align-items:flex-start;gap:7px;padding:5px 3px;border-radius:7px;font-size:12px;line-height:1.4}.sidebar-task:hover{background:#f5f7f5}.sidebar-task input[type=checkbox]{width:15px;height:15px;margin-top:1px;accent-color:var(--brand);flex:none}.sidebar-task.done .sidebar-task-text{text-decoration:line-through;color:#9aa29d}.sidebar-empty{padding:5px 3px;color:#a0a8a3;font-size:11px}.dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}.color-select{width:28px;height:28px;padding:0;border:0;background:transparent}.progress{height:7px;background:#e7ece8;border-radius:99px;overflow:hidden}.progress>i{display:block;height:100%;background:var(--brand);border-radius:99px}.metric{padding:11px;border-radius:13px;background:#f5f7f4}.metric strong{font-size:19px;display:block}.metric span{font-size:11px;color:var(--muted)}
+      .hero{padding:22px;background:linear-gradient(135deg,#ffffff 0%,#f3f6ff 100%);border:1px solid var(--line);border-radius:20px;display:flex;justify-content:space-between;gap:18px;align-items:center}.hero-verse{max-width:480px;color:#6b7580;font-family:Georgia,"Noto Serif KR",serif;font-size:14px}.focus-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}.focus-item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;min-height:72px;display:flex;gap:9px;align-items:flex-start}.focus-num{width:23px;height:23px;border-radius:8px;background:var(--brand2);color:var(--brand);font-size:11px;font-weight:900;display:grid;place-items:center;flex:none}.quick-add{display:grid;grid-template-columns:150px minmax(180px,1fr) 92px auto;gap:8px}.task-project{overflow:hidden}.project-head{padding:12px 15px;display:flex;align-items:center;justify-content:space-between;background:#fafbf9;border-bottom:1px solid var(--line)}.task-list{padding:7px}.task{display:grid;grid-template-columns:22px 28px 28px minmax(0,1fr) 76px 30px 34px;align-items:center;gap:5px;padding:6px;border-radius:10px}.task:hover{background:#f4f6f8}.task.done{opacity:.6}.task.done .task-text{text-decoration:line-through}.task.priority-high{background:var(--high-bg);border:1px solid var(--high-line)}.task.priority-high .task-text{font-weight:800;color:#7a4f00}.task.dragging{opacity:.45}.task-grip{border:0;background:transparent;color:#b8c0c8;cursor:grab;padding:0;font-size:14px;line-height:1}.task-grip:active{cursor:grabbing}.task input[type=checkbox]{width:18px;height:18px;accent-color:var(--brand)}.star{border:0;background:transparent;font-size:17px;color:#b3bbb6}.star.on{color:var(--gold)}.task-text{border:1px solid transparent;background:transparent;padding:6px;border-radius:7px;width:100%}.task-text:focus{background:#fff;border-color:#cad4cd}.priority{border:0;background:transparent;font-size:11px;color:var(--muted)}
+      .timer{background:#243f34;color:#fff;padding:18px;border-radius:18px;box-shadow:var(--shadow)}.timer-display{font-size:42px;font-weight:300;letter-spacing:.05em;font-variant-numeric:tabular-nums}.timer .field{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#fff}.timer .field option{color:#222}.timer .btn{border-color:rgba(255,255,255,.18)}.timer .btn.ghost{color:#fff}.timer-presets button{border:0;background:rgba(255,255,255,.09);color:#dfe9e3;border-radius:8px;padding:5px 8px;font-size:11px}.timer-presets button.active{background:#fff;color:var(--brand)}
+      .faith-check{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:10px}.faith-cell{padding:13px;border:1px solid var(--line);border-radius:13px;background:#fff}.faith-cell label{font-size:12px;font-weight:800;display:block;margin-bottom:8px}.big-check{display:flex;align-items:center;gap:8px}.big-check input{width:21px;height:21px;accent-color:var(--brand)}
+      .devotion-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.devotion-grid .wide{grid-column:1/-1}.mood-row{display:flex;gap:6px;flex-wrap:wrap}.mood{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 10px;font-size:12px}.mood.active{background:var(--brand2);color:var(--brand);border-color:#aac1b3;font-weight:800}
+      .timeline-wrap{overflow:auto;max-height:570px;border-top:1px solid var(--line)}.timeline-head{display:grid;grid-template-columns:58px 1fr 1fr;position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line)}.timeline-head div{padding:10px;text-align:center;font-size:12px;font-weight:800}.timeline-head div+div{border-left:1px solid var(--line)}.timeline{position:relative;display:grid;grid-template-columns:58px 1fr 1fr}.time-axis{position:relative;border-right:1px solid var(--line)}.time-label{position:absolute;right:8px;transform:translateY(-8px);font-size:10px;color:#89918c}.timeline-col{position:relative;border-right:1px solid var(--line);background:repeating-linear-gradient(to bottom,transparent 0,transparent 23px,#edf0ed 24px,transparent 25px,transparent 47px,#dfe5e0 48px)}.time-block{position:absolute;left:5px;right:5px;border-radius:9px;padding:6px 8px;color:#fff;font-size:11px;overflow:hidden;box-shadow:0 3px 10px rgba(30,50,40,.14);border:0;text-align:left}.time-block strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.time-block small{opacity:.88}.now-line{position:absolute;left:0;right:0;height:2px;background:#d85f55;z-index:7}.now-line:before{content:"";position:absolute;left:-4px;top:-4px;width:9px;height:9px;border-radius:50%;background:#d85f55}.schedule-form{padding:14px 18px;background:#f8faf8;border-top:1px solid var(--line);display:grid;grid-template-columns:100px minmax(150px,1fr) 105px 105px auto;gap:8px;align-items:end}.block-editor{padding:14px;background:#fff8ec;border-top:1px solid #ead9bb}.day-task-area{grid-column:span 2}
+      .goal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.goal{padding:15px;border:1px solid var(--line);border-radius:15px;background:#fff}.goal .big{font-size:25px;font-weight:800}.week-days{display:grid;grid-template-columns:repeat(7,minmax(105px,1fr));gap:8px;overflow:auto}.week-day{border:1px solid var(--line);background:#fff;border-radius:14px;padding:11px;min-height:115px;text-align:left}.week-day.today{border-color:#a8b8ff;background:#f5f7ff}.week-day strong{display:block;margin-bottom:8px}.week-day p{font-size:11px;margin:4px 0;color:var(--muted)}.digest{display:flex;flex-direction:column;gap:9px}.digest-item{padding:13px;border-left:3px solid var(--brand);background:#f7f9f6;border-radius:0 12px 12px 0}.digest-item h4{margin:0 0 5px;font-size:13px}.digest-item p{margin:2px 0;font-size:12px;color:#58625c}
+      .calendar{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--line);border-top:1px solid var(--line)}.cal-name{padding:9px;text-align:center;font-size:11px;font-weight:800;color:var(--muted);background:#f6f7f5;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.cal-day{min-height:116px;padding:9px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;text-align:left;vertical-align:top}.cal-day:hover{background:#f7faf7}.cal-day.out{background:#f5f6f4;color:#a8afaa}.cal-day.today{box-shadow:inset 0 0 0 2px var(--brand)}.cal-num{font-weight:800;font-size:12px}.cal-badge{display:block;margin-top:5px;padding:3px 5px;border-radius:6px;background:#eef2ff;color:var(--brand);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cal-faith{display:flex;gap:4px;margin-top:6px;font-size:10px;color:var(--muted)}
+      .prayer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.prayer-card{overflow:hidden}.prayer-item{padding:12px 14px;border-top:1px solid #edf0ed}.prayer-item.answered{background:#f4f8f4}.prayer-item.answered .prayer-title{text-decoration:line-through;color:var(--muted)}.prayer-title{border:0;background:transparent;font-weight:700;width:100%;padding:2px}.prayer-note{border:0;background:transparent;width:100%;resize:vertical;min-height:42px;font-size:12px;color:var(--muted);padding:4px 2px}.answer-badge{font-size:10px;color:var(--brand);background:var(--brand2);padding:3px 6px;border-radius:99px}
+      .schedule-form{grid-template-columns:minmax(150px,1fr) 105px 105px auto}
+      .tb-wrap{overflow:auto;max-height:min(78vh,920px);border-top:1px solid var(--line);background:#fafbf9;position:relative}
+      .tb-wrap.fit-all{overflow:hidden}
+      .tb-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);background:#fff;flex-wrap:wrap}
+      .tb-toolbar-left,.tb-toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+      .tb-toolbar label{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+      .tb-toolbar select.field{width:auto;min-width:108px;min-height:36px;padding:6px 10px}
+      .tb-zoom{display:flex;align-items:center;gap:6px}
+      .tb-zoom input[type=range]{width:120px;accent-color:var(--brand)}
+      .tb-zoom-value{font-size:11px;font-weight:800;color:var(--muted);min-width:36px;text-align:center}
+      .tb-layout{display:grid;grid-template-columns:52px minmax(0,1fr);padding:10px 12px 14px}
+      .tb-inner{grid-column:2;position:relative;width:100%;min-height:120px}
+      .tb-hour{position:absolute;left:-52px;right:0;border-top:1px solid #edf0ed;font-size:10px;color:#89918c;pointer-events:none;width:calc(100% + 52px)}
+      .tb-hour span{position:absolute;left:0;transform:translateY(-7px);background:#fafbf9;padding:0 4px;font-weight:700}
+      .tb-half{border-top-style:dashed;border-color:#eef2ef}
+      .tb-block{position:absolute;cursor:grab;user-select:none;-webkit-user-select:none;border-radius:9px;padding:6px 8px;color:#fff;font-size:11px;overflow:hidden;box-shadow:0 3px 10px rgba(30,50,40,.14);z-index:10;touch-action:pan-y;-webkit-touch-callout:none}
+      .tb-block.tb-seg-continues{border-bottom:2px dashed rgba(255,255,255,.7);border-radius:9px 9px 2px 2px}
+      .tb-block.tb-seg-continues:after{content:"⌄ 다음날로 이어짐";position:absolute;bottom:2px;right:6px;font-size:9px;opacity:.85}
+      .tb-block.tb-seg-continued{border-top:2px dashed rgba(255,255,255,.7);border-radius:2px 2px 9px 9px}
+      .tb-block.tb-seg-continued:before{content:"⌃ 전날에서 이어짐";position:absolute;top:2px;right:6px;font-size:9px;opacity:.85}
+      .tb-block:active{cursor:grabbing}
+      .tb-block strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .tb-block small{opacity:.88;font-size:10px}
+      .tb-dbl{position:absolute;left:0;right:0;top:0;height:100%;z-index:5;cursor:pointer}
+      .tb-resize{position:absolute;bottom:0;left:0;right:0;height:8px;cursor:ns-resize;background:rgba(255,255,255,.28);border-radius:0 0 8px 8px;opacity:0}
+      .tb-block:hover .tb-resize{opacity:1}
+      .tb-block.touch-active{z-index:30;box-shadow:0 0 0 3px rgba(255,255,255,.92),0 8px 22px rgba(30,50,40,.3)}
+      .tb-add-form{padding:14px 18px;background:#f8faf8;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+      .tb-add-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+      .tb-colors{display:flex;gap:6px;flex-wrap:wrap}
+      .tb-color{width:24px;height:24px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer}
+      .tb-color.on{box-shadow:0 0 0 2px #fff,0 0 0 4px currentColor;transform:scale(1.08)}
+      .modal-backdrop{position:fixed;inset:0;background:rgba(44,51,64,.35);z-index:200;display:grid;place-items:center;padding:16px}
+      .modal{width:min(420px,100%);background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(44,51,64,.18);overflow:hidden}
+      .modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+      .modal-head h3{margin:0;font-size:17px}
+      .modal-body{padding:16px 20px 20px;display:flex;flex-direction:column;gap:14px}
+      .modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:0 20px 18px}
+      .time-select-row{display:flex;align-items:center;gap:6px}
+      .time-select-row select{flex:1;min-width:0}
+      .time-select-row span{color:var(--muted);font-weight:700}
+      .color-palette{display:flex;gap:10px;flex-wrap:wrap}
+      .color-palette button{width:28px;height:28px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer}
+      .color-palette button.on{box-shadow:0 0 0 2px #fff,0 0 0 4px currentColor;transform:scale(1.06)}
+      .sidebar-panel{position:relative}.sidebar-panel.dragging{opacity:.5}.sidebar-grip{position:absolute;top:12px;right:12px;border:0;background:#f0f2f5;color:#9aa3ad;width:26px;height:26px;border-radius:8px;cursor:grab;font-size:13px;line-height:1;z-index:2;display:grid;place-items:center}.sidebar-grip:active{cursor:grabbing}.sidebar-panel .card-head{padding-right:42px}
+      .scratch-textarea{min-height:220px;line-height:1.6}
+      .scratch-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);flex-wrap:wrap;gap:6px}
+      .sidebar-scratch .card-pad{padding:12px}
+      .sidebar-scratch .scratch-textarea{min-height:110px;font-size:12px}
+      .sidebar-scratch .scratch-meta{font-size:10px}
+      .view-toggle{display:inline-flex;background:#f0f2f5;border-radius:11px;padding:3px}
+      .view-toggle button{border:0;background:transparent;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;color:var(--muted)}
+      .view-toggle button.active{background:#fff;color:var(--brand)}
+      .memo-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+      .memo-color-filters{display:flex;align-items:center;gap:6px}
+      .memo-filter-chip{width:20px;height:20px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer}
+      .memo-filter-chip.all{background:#fff;border:1px solid var(--line);color:transparent}
+      .memo-filter-chip.on{box-shadow:0 0 0 2px #fff,0 0 0 3px currentColor}
+      .memo-empty{padding:32px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed #ccd5cf;border-radius:13px;background:#fafbf9}
+      .memo-board{position:relative;overflow:auto;border:1px dashed var(--line);border-radius:16px;background:#fafbfc;max-height:620px}
+      .memo-canvas{position:relative;width:1400px;height:900px}
+      .memo-card{position:absolute;width:210px;min-height:160px;border-radius:4px 4px 12px 12px;box-shadow:0 10px 24px rgba(44,51,64,.16);padding:12px;display:flex;flex-direction:column;gap:6px;cursor:grab;user-select:none}
+      .memo-card:active{cursor:grabbing}
+      .memo-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+      .memo-card-title{border:0;background:transparent;font-weight:800;font-size:13px;width:100%;padding:2px 0;color:inherit}
+      .memo-card-title:focus{outline:1px dashed rgba(0,0,0,.3);border-radius:4px}
+      .memo-card .btn.ghost.danger{min-height:22px;padding:0 6px;font-size:12px;color:inherit;opacity:.7}
+      .memo-card .btn.ghost.danger:hover{opacity:1}
+      .memo-card-date{font-size:10px;opacity:.65}
+      .memo-card-meta{display:flex;align-items:center;justify-content:space-between;gap:6px}
+      .memo-tag-add-btn{border:0;background:rgba(0,0,0,.08);color:inherit;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;cursor:pointer;white-space:nowrap}
+      .memo-tag-add-btn:hover{background:rgba(0,0,0,.15)}
+      .memo-card-body{font-size:12px;white-space:pre-wrap;overflow:auto;flex:1;line-height:1.55;max-height:160px}
+      .memo-card-palette{display:flex;align-items:center;gap:5px;margin-top:2px}
+      .memo-card-palette button{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.15);padding:0}
+      .memo-card-palette button.selected{box-shadow:0 0 0 2px rgba(255,255,255,.8)}
+      .memo-list{display:flex;flex-direction:column;gap:10px}
+      .memo-list-item{display:flex;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#fff}
+      .memo-list-item .dot{margin-top:4px}
+      .memo-list-title{border:0;background:transparent;font-weight:800;font-size:13px;padding:2px;flex:1;min-width:0}
+      .memo-list-title:focus{outline:1px dashed #cad4cd;border-radius:4px}
+      .memo-list-date{font-size:11px;color:var(--muted);white-space:nowrap}
+      .memo-list-body{font-size:12px;color:#5b6470;margin-top:4px;white-space:pre-wrap}
+      .toast{position:fixed;right:22px;bottom:22px;z-index:100;background:#2c3340;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);font-size:13px;animation:slide .2s ease}@keyframes slide{from{transform:translateY(10px);opacity:0}}
+      .tb-tip{padding:9px 18px;background:#f7f9f7;color:var(--muted);font-size:11px;border-top:1px solid var(--line);text-align:center}
+      .sidebar-task-add{display:flex;gap:5px;padding:2px 3px 6px}
+      .sidebar-task-add .field{min-height:32px;padding:5px 8px;font-size:12px}
+      .sidebar-task-text{border:0;background:transparent;flex:1;font-size:12px;min-width:0;padding:2px}
+      .sidebar-task-text:focus{background:#fff;border-radius:5px;outline:1px solid #cad4cd}
+      .sidebar-task .btn{min-height:24px;padding:2px 6px;font-size:11px}
+      .sidebar-weekly{padding:12px 14px 14px}
+      .sidebar-weekly .weekly-board{gap:10px}
+      .sidebar-weekly .weekly-toolbar{display:flex;flex-direction:column;gap:8px;align-items:stretch}
+      .sidebar-weekly .weekly-toolbar-actions{display:flex;gap:6px}
+      .sidebar-weekly .weekly-toolbar-actions .btn{flex:1;min-height:36px;padding:6px 8px;font-size:12px}
+      .sidebar-weekly .weekly-input{width:100%;min-width:0;font-size:13px}
+      .sidebar-weekly .weekly-project-box{border-radius:14px}
+      .sidebar-weekly .weekly-project-head{flex-wrap:nowrap;gap:5px;padding:6px 9px;overflow-x:auto}
+      .sidebar-weekly .weekly-project-head>input[type=text]{flex:1;min-width:30px;max-width:none;width:auto;font-size:13px;padding:4px 5px}
+      .sidebar-weekly .palette{margin-left:0;flex-wrap:nowrap;flex:0 0 auto;width:auto;gap:3px}
+      .sidebar-weekly .palette button{width:13px;height:13px}
+      .sidebar-weekly .weekly-project-head .btn{flex:0 0 auto;min-height:auto;padding:2px 5px;font-size:11px;border-radius:6px}
+      .sidebar-weekly .weekly-project-body{padding:8px 10px;min-height:44px}
+      .sidebar-weekly .weekly-task-row{grid-template-columns:18px minmax(0,1fr) 26px 26px;gap:5px;padding:4px}
+      .btn-add-mini{min-height:26px;min-width:26px;padding:2px 6px;font-size:14px;line-height:1}
+      .sidebar-weekly .weekly-task-row .task-text{font-size:12px;min-width:0;width:100%}
+      .sidebar-weekly .weekly-task-row .priority{display:none}
+      .sidebar-weekly .drop-hint{font-size:11px;padding:6px 2px}
+      .schedule-layout.single-col{display:block}
+      .weekly-board{display:flex;flex-direction:column;gap:14px}.weekly-toolbar{display:grid;grid-template-columns:160px minmax(180px,1fr) auto auto;gap:9px;align-items:center}.weekly-project-box{border:2px solid var(--project-color);border-left-width:5px;border-radius:18px;overflow:hidden;background:#fff}.weekly-project-head{display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #edf0ed}.weekly-project-head>input[type=text]{border:1px solid transparent;background:transparent;font-weight:800;min-width:90px;max-width:180px;padding:6px;border-radius:8px}.weekly-project-head>input[type=text]:focus{border-color:var(--line);background:#fff}.palette{display:flex;align-items:center;gap:5px;margin-left:auto}.palette button{width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.1);padding:0}.palette button.selected{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--project-color)}.weekly-project-body{min-height:72px;padding:10px 13px;display:flex;flex-direction:column;gap:5px}.weekly-task-row{display:grid;grid-template-columns:22px minmax(0,1fr) 72px 26px 34px;gap:7px;align-items:center;padding:5px;border-radius:9px}.weekly-task-row:hover{background:#f5f7f5}.weekly-task-row.dragging{opacity:.45}.weekly-task-row input[type=checkbox]{width:17px;height:17px;accent-color:var(--brand)}.weekly-task-row.done .task-text{text-decoration:line-through;color:#9aa29d}.drop-hint{padding:10px 3px;color:#9ca5af;font-size:12px}.day-overview{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,1fr);gap:16px;align-items:start}.day-side{display:flex;flex-direction:column;gap:14px;min-width:0}.day-side .card{min-height:0}.faith-bottom{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}.timeline-head.single,.timeline.single{grid-template-columns:58px 1fr}
+      .faith-col-stack{display:flex;flex-direction:column;gap:14px}.verse-card{text-align:center}.verse-card .verse-text{font-family:Georgia,"Noto Serif KR",serif;font-size:14px;line-height:1.75;color:#3a4250;white-space:pre-wrap;margin:0 0 12px}.verse-card .verse-ref{font-size:12px;color:var(--muted);font-weight:800;margin:0}
+      .mobile-projects{display:none}.footer{max-width:1480px;margin:auto;padding:0 22px 30px;color:var(--muted);font-size:11px;text-align:center}
+      @media(max-width:1100px){.shell{grid-template-columns:1fr}.sidebar{display:none}.mobile-projects{display:block}.header-inner{flex-wrap:wrap}.header-actions{margin-left:0}.grid-3{grid-template-columns:1fr}.day-task-area{grid-column:auto}.prayer-grid{grid-template-columns:1fr}.day-overview,.faith-bottom{grid-template-columns:1fr}}
+      @media(max-width:760px){.header-inner{padding:10px 12px;gap:9px}.brand small,.save-state{display:none}.nav{order:3;width:100%;overflow:auto}.nav button{flex:1;white-space:nowrap}.shell{padding:12px}.date-nav strong{min-width:110px}.hero{display:block}.hero-verse{margin-top:10px}.focus-list,.grid-2,.goal-grid,.faith-bottom{grid-template-columns:1fr}.quick-add{grid-template-columns:1fr 1fr}.quick-add .task-input{grid-column:1/-1;grid-row:1}.faith-check,.devotion-grid{grid-template-columns:1fr}.devotion-grid .wide{grid-column:auto}.schedule-form{grid-template-columns:1fr 1fr}.schedule-form .schedule-title{grid-column:1/-1}.cal-day{min-height:100px}.prayer-grid{grid-template-columns:1fr}.page-title{font-size:23px}.timer-display{font-size:36px}.task{grid-template-columns:22px 28px 28px minmax(0,1fr) 30px 34px}.priority{display:none}.weekly-toolbar{grid-template-columns:1fr auto}.weekly-toolbar .weekly-input{grid-column:1/-1;grid-row:1}.weekly-project-head{flex-wrap:wrap}.palette{order:3;margin-left:28px}.weekly-task-row{grid-template-columns:22px minmax(0,1fr) 26px 26px}.weekly-task-row .priority{display:none}.tb-layout{grid-template-columns:48px minmax(0,1fr);padding:8px 10px 12px}.tb-zoom input[type=range]{width:90px}}
+      @media(max-width:760px){
+        html,body,#app,.app,.header,.header-inner,.shell,.main{width:100%;max-width:100%;min-width:0}
+        body,#app,.app{overflow-x:hidden}
+        .header-inner{margin:0}
+        .header-actions,.date-nav{width:100%;min-width:0}
+        .date-nav{justify-content:space-between}
+        .date-nav strong{min-width:0;flex:1}
+        .shell{display:block;margin:0}
+        .main>.stack,.day-overview,.day-overview>*,.day-side,.faith-bottom,.faith-col-stack{width:100%;max-width:100%;min-width:0}
+        .main>.stack,.day-side,.faith-col-stack{align-items:stretch}
+        .hero,.focus-list,.focus-item,.mobile-projects,.card,.timer,.empty{width:100%;max-width:100%;min-width:0}
+        .faith-bottom>*,.card-head,.card-pad,.faith-check,.faith-cell,.devotion-grid{min-width:0;max-width:100%}
+        .hero-verse,.page-sub,.focus-item span,.card-head h2,.card-head h3{overflow-wrap:anywhere}
+        .quick-add,.weekly-toolbar,.weekly-project-box,.tb-toolbar,.tb-layout,.tb-inner{width:100%;max-width:100%;min-width:0}
+        .tb-block{padding-bottom:16px}
+        .tb-resize{height:16px;opacity:1;background:rgba(255,255,255,.2)}
+        .tb-resize:after{content:"";position:absolute;left:50%;bottom:4px;width:30px;height:3px;border-radius:99px;background:rgba(255,255,255,.88);transform:translateX(-50%)}
+      }
+      input.field[type=number]::-webkit-outer-spin-button,input.field[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+      input.field[type=number]{-moz-appearance:textfield}
+      .faith-cell .row{gap:6px}
+      .faith-cell .row .field{min-width:0;flex:1}
+      .faith-cell .row span.small{flex:none;white-space:nowrap}
+      .day-badges{display:flex;gap:3px;margin-top:5px;flex-wrap:wrap}
+      .day-badge{width:18px;height:18px;border-radius:6px;color:#fff;font-size:10px;display:grid;place-items:center;flex:0 0 auto;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+      .day-badge.wide{width:auto;min-width:18px;padding:0 4px;border-radius:8px;display:inline-flex;align-items:center;gap:2px}
+      .day-badge.wide b{font-size:8px;font-weight:800}
+      .badge-legend{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:2px 4px}
+      .badge-legend-item{display:inline-flex;align-items:center;gap:4px}
+      .tag-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;background:rgba(0,0,0,.08);font-size:10px;font-weight:700;white-space:nowrap}
+      .tag-chip.on{background:var(--brand);color:#fff}
+      .tag-chip button{border:0;background:transparent;color:inherit;font-size:11px;line-height:1;padding:0;cursor:pointer;opacity:.7}
+      .tag-chip button:hover{opacity:1}
+      .tag-row{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+      .tag-add-row{display:flex;gap:5px;margin-top:6px}
+      .tag-add-row input{flex:1;min-width:0;min-height:28px;padding:4px 8px;font-size:11px}
+      .tag-add-row button{min-height:28px;padding:3px 9px;font-size:11px}
+      .memo-card .tag-row{margin-top:2px}
+      .memo-card .tag-chip{background:rgba(255,255,255,.4);color:inherit}
+      .memo-card .tag-chip button{color:inherit}
+      .memo-board{touch-action:none}
+      .memo-card.touch-dragging{z-index:60;box-shadow:0 0 0 3px rgba(255,255,255,.9),0 10px 26px rgba(30,50,40,.3)}
+      .memo-zoom-toolbar{display:flex;align-items:center;gap:6px;margin-bottom:10px;justify-content:flex-end;flex-wrap:wrap}
+      .memo-tag-filters{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+      .prayer-card{border-left:5px solid var(--line);position:relative}
+      .prayer-card.type-person{border-left-color:#4285F4}
+      .prayer-card.type-group{border-left-color:#FF9800}
+      .prayer-card.dragging{opacity:.5}
+      .prayer-drag-item.dragging{opacity:.5}
+      .prayer-type-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;color:#fff}
+      .prayer-type-badge.person{background:#4285F4}
+      .prayer-type-badge.group{background:#FF9800}
+      .prayer-drag-handle{border:0;background:#f0f2f5;color:#9aa3ad;width:26px;height:26px;border-radius:8px;cursor:grab;font-size:13px;display:grid;place-items:center;flex:none}
+      .prayer-drag-handle:active{cursor:grabbing}
+      .prayer-view-filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+      .prayer-head-row{display:flex;align-items:center;gap:8px}
+      .prayer-name-input{flex:1;min-width:0;border:0;background:transparent;font-weight:800;font-size:15px;padding:2px 4px;color:inherit;border-radius:6px}
+      .prayer-name-input:focus{outline:1px dashed rgba(0,0,0,.25);background:rgba(0,0,0,.03)}
+      .prayer-tag-pad{padding:0 18px 14px;display:flex;flex-direction:column;gap:8px}
+      .prayer-tag-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+      .preset-tag-btn{border:1px solid var(--line);background:#fff;color:var(--muted);font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;cursor:pointer}
+      .preset-tag-btn.on{background:var(--brand2);color:var(--brand);font-weight:800;border-color:#aac1b3}
+      .add-tag-mini-btn{border:0;background:#eceeec;color:#333;font-size:10px;font-weight:700;padding:4px 9px;border-radius:99px;cursor:pointer}
+      .add-tag-mini-btn:hover{background:#dfe2df}
+      .prayer-item-time{font-size:10px;color:var(--muted);white-space:nowrap}
+      .prayer-add-form{border-top:1px solid #edf0ed}
+      .verse-check-btn{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font-size:11px;font-weight:800;color:var(--muted);display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex:0 0 auto}
+      .verse-check-btn.on{background:var(--brand2);color:var(--brand);border-color:#aac1b3}
+      .calendar-scroll{overflow:auto}
+      .month-zoom-wrap{overflow:auto;-webkit-overflow-scrolling:touch;border-radius:12px}
+      .month-zoom-inner{transform-origin:0 0}
+      .month-zoom-inner .calendar{min-width:700px}
+      .month-zoom-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 2px 10px}
+      .month-zoom-toolbar .tb-zoom-value{min-width:40px;text-align:center;font-size:11px;font-weight:800;color:var(--muted)}
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="text/babel">
+      const { useEffect, useMemo, useRef, useState } = React;
+      const STORAGE_KEY = "hamin-planner-v5";
+      const DEFAULT_PROJECT_ID = "project-inbox";
+      const DEFAULT_SIDEBAR_ORDER = ["miniWeek", "projects", "faith", "scratch", "data"];
+      const DEFAULT_DAY_START = 360;
+      const PX_PER_MIN = 1.25;
+      const MIN_SCHEDULE_ZOOM = 0.35;
+      const MAX_SCHEDULE_ZOOM = 2.5;
+      const DEFAULT_SCHEDULE_ZOOM = 1;
+      const COLORS = ["#F06A6A", "#FF9800", "#4CAF7D", "#26C6DA", "#4285F4", "#AB47BC", "#EC407A", "#546E7A"];
+      const MEMO_CARD_W = 210;
+      const MEMO_CARD_H = 160;
+      const MEMO_CANVAS_W = 1400;
+      const MEMO_CANVAS_H = 900;
+      const BIBLE_VERSES = [
+  {
+    "ref": "고린도후서 5장 17절",
+    "text": "그런즉 누구든지 그리스도 안에 있으면 새로운 피조물이라 이전 것은 지나갔으니 보라 새 것이 되었도다"
+  },
+  {
+    "ref": "갈라디아서 2장 20절",
+    "text": "내가 그리스도와 함께 십자가에 못 박혔나니 그런즉 이제는 내가 산 것이 아니요 오직 내 안에 그리스도께서 사신 것이라 이제 내가 육체 가운데 사는 것은 나를 사랑하사 나를 위하여 자기 몸을 버리신 하나님의 아들을 믿는 믿음 안에서 사는 것이라"
+  },
+  {
+    "ref": "로마서 12장 1절",
+    "text": "그러므로 형제들아 내가 하나님의 모든 자비하심으로 너희를 권하노니 너희 몸을 하나님이 기뻐하시는 거룩한 산 제사로 드리라 이는 너희의 드릴 영적 예배니라"
+  },
+  {
+    "ref": "요한복음 14장 21절",
+    "text": "나의 계명을 가지고 지키는 자라야 나를 사랑하는 자니 나를 사랑하는 자는 내 아버지께 사랑을 받을 것이요 나도 그를 사랑하여 그에게 나를 나타내리라"
+  },
+  {
+    "ref": "디모데후서 3장 16절",
+    "text": "모든 성경은 하나님의 감동으로 된 것으로 교훈과 책망과 바르게 함과 의로 교육하기에 유익하니"
+  },
+  {
+    "ref": "여호수아 1장 8절",
+    "text": "이 율법책을 네 입에서 떠나지 말게 하며 주야로 그것을 묵상하여 그 가운데 기록한대로 다 지켜 행하라 그리하면 네 길이 평탄하게 될 것이라 네가 형통하리라"
+  },
+  {
+    "ref": "요한복음 15장 7절",
+    "text": "너희가 내 안에 거하고 내 말이 너희 안에 거하면 무엇이든지 원하는대로 구하라 그리하면 이루리라"
+  },
+  {
+    "ref": "빌립보서 4장 6-7절",
+    "text": "아무 것도 염려하지 말고 오직 모든 일에 기도와 간구로 너희 구할 것을 감사함으로 하나님께 아뢰라 그리하면 모든 지각에 뛰어난 하나님의 평강이 그리스도 예수 안에서 너희 마음과 생각을 지키시리라"
+  },
+  {
+    "ref": "마태복음 18장 20절",
+    "text": "두 세 사람이 내 이름으로 모인 곳에는 나도 그들 중에 있느니라"
+  },
+  {
+    "ref": "히브리서 10장 24-25절",
+    "text": "서로 돌아보아 사랑과 선행을 격려하며 모이기를 폐하는 어떤 사람들의 습관과 같이 하지 말고 오직 권하여 그날이 가까움을 볼수록 더욱 그리하자"
+  },
+  {
+    "ref": "마태복음 4장 19절",
+    "text": "말씀하시되 나를 따라 오너라 내가 너희로 사람을 낚는 어부가 되게 하리라 하시니"
+  },
+  {
+    "ref": "로마서 1장 16절",
+    "text": "내가 복음을 부끄러워하지 아니하노니 이 복음은 모든 믿는 자에게 구원을 주시는 하나님의 능력이 됨이라 첫째는 유대인에게요 또한 헬라인에게로다"
+  },
+  {
+    "ref": "로마서 3장 23절",
+    "text": "모든 사람이 죄를 범하였으매 하나님의 영광에 이르지 못하더니"
+  },
+  {
+    "ref": "이사야 53장 6절",
+    "text": "우리는 다 양 같아서 그릇 행하여 각기 제 길로 갔거늘 여호와께서는 우리 무리의 죄악을 그에게 담당시키셨도다"
+  },
+  {
+    "ref": "로마서 6장 23절",
+    "text": "죄의 삯은 사망이요 하나님의 은사는 그리스도 예수 우리 주 안에 있는 영생이니라"
+  },
+  {
+    "ref": "히브리서 9장 27절",
+    "text": "한번 죽는 것은 사람에게 정하신 것이요 그 후에는 심판이 있으리니"
+  },
+  {
+    "ref": "로마서 5장 8절",
+    "text": "우리가 아직 죄인 되었을 때에 그리스도께서 우리를 위하여 죽으심으로 하나님께서 우리에게 대한 자기의 사랑을 확증하셨느니라"
+  },
+  {
+    "ref": "베드로전서 3장 18절",
+    "text": "그리스도께서도 한번 죄를 위하여 죽으사 의인으로서 불의한 자를 대신하셨으니 이는 우리를 하나님 앞으로 인도하려 하심이라 육체로는 죽임을 당하시고 영으로는 살리심을 받으셨으니"
+  },
+  {
+    "ref": "에베소서 2장 8-9절",
+    "text": "너희가 그 은혜를 인하여 믿음으로 말미암아 구원을 얻었나니 이것이 너희에게서 난 것이 아니요 하나님의 선물이라 행위에서 난 것이 아니니 이는 누구든지 자랑치 못하게 함이니라"
+  },
+  {
+    "ref": "디도서 3장 5절",
+    "text": "우리를 구원하시되 우리의 행한바 의로운 행위로 말미암지 아니하고 오직 그의 긍휼하심을 좇아 중생의 씻음과 성령의 새롭게 하심으로 하셨나니"
+  },
+  {
+    "ref": "요한복음 1장 12절",
+    "text": "영접하는 자 곧 그 이름을 믿는 자들에게는 하나님의 자녀가 되는 권세를 주셨으니"
+  },
+  {
+    "ref": "요한계시록 3장 20절",
+    "text": "볼지어다 내가 문밖에 서서 두드리노니 누구든지 내 음성을 듣고 문을 열면 내가 그에게로 들어가 그로 더불어 먹고 그는 나로 더불어 먹으리라"
+  },
+  {
+    "ref": "요한일서 5장 13절",
+    "text": "내가 하나님의 아들의 이름을 믿는 너희에게 이것을 쓴 것은 너희로 하여금 너희에게 영생이 있음을 알게 하려 함이라"
+  },
+  {
+    "ref": "요한복음 5장 24절",
+    "text": "내가 진실로 진실로 너희에게 이르노니 내 말을 듣고 또 나 보내신 이를 믿는 자는 영생을 얻었고 심판에 이르지 아니하나니 사망에서 생명으로 옮겼느니라"
+  },
+  {
+    "ref": "고린도전서 3장 16절",
+    "text": "너희가 하나님의 성전인 것과 하나님의 성령이 너희 안에 거하시는 것을 알지 못하느뇨"
+  },
+  {
+    "ref": "고린도전서 2장 12절",
+    "text": "우리가 세상의 영을 받지 아니하고 오직 하나님께로 온 영을 받았으니 이는 우리로 하여금 하나님께서 우리에게 은혜로 주신 것들을 알게 하려 하심이라"
+  },
+  {
+    "ref": "이사야 41장 10절",
+    "text": "두려워 말라 내가 너와 함께 함이니라 놀라지 말라 나는 네 하나님이 됨이니라 내가 너를 굳세게 하리라 참으로 너를 도와 주리라 참으로 나의 의로운 오른손으로 너를 붙들리라"
+  },
+  {
+    "ref": "빌립보서 4장 13절",
+    "text": "내게 능력 주시는 자 안에서 내가 모든 것을 할 수 있느니라"
+  },
+  {
+    "ref": "예레미야애가 3장 22-23절",
+    "text": "여호와의 자비와 긍휼이 무궁하시므로 우리가 진멸되지 아니함이니이다 이것이 아침마다 새로우니 주의 성실이 크도소이다"
+  },
+  {
+    "ref": "민수기 23장 19절",
+    "text": "하나님은 인생이 아니시니 식언치 않으시고 인자가 아니시니 후회가 없으시도다 어찌 그 말씀하신 바를 행치 않으시며 하신 말씀을 실행치 않으시랴"
+  },
+  {
+    "ref": "이사야 26장 3절",
+    "text": "주께서 심지가 견고한 자를 평강에 평강으로 지키시리니 이는 그가 주를 의뢰함이니이다"
+  },
+  {
+    "ref": "베드로전서 5장 7절",
+    "text": "너희 염려를 다 주께 맡겨 버리라 이는 저가 너희를 권고하심이니라"
+  },
+  {
+    "ref": "로마서 8장 32절",
+    "text": "자기 아들을 아끼지 아니하시고 우리 모든 사람을 위하여 내어 주신 이가 어찌 그 아들과 함께 모든 것을 우리에게 은사로 주지 아니 하시겠느뇨"
+  },
+  {
+    "ref": "빌립보서 4장 19절",
+    "text": "나의 하나님이 그리스도 예수 안에서 영광 가운데 그 풍성한 대로 너희 모든 쓸 것을 채우시리라"
+  },
+  {
+    "ref": "히브리서 2장 18절",
+    "text": "자기가 시험을 받아 고난을 당하셨은즉 시험받는 자들을 능히 도우시느니라"
+  },
+  {
+    "ref": "시편 119편 9-11절",
+    "text": "청년이 무엇으로 그 행실을 깨끗케 하리이까 주의 말씀을 따라 삼갈 것이니이다 내가 주께 범죄치 아니하려 하여 주의 말씀을 내 마음에 두었나이다"
+  },
+  {
+    "ref": "마태복음 6장 33절",
+    "text": "너희는 먼저 그의 나라와 그의 의를 구하라 그리하면 이 모든 것을 너희에게 더하시리라"
+  },
+  {
+    "ref": "누가복음 9장 23절",
+    "text": "또 무리에게 이르시되 아무든지 나를 따라 오려거든 자기를 부인하고 날마다 제 십자가를 지고 나를 좇을 것이니라"
+  },
+  {
+    "ref": "요한일서 2장 15-16절",
+    "text": "이 세상이나 세상에 있는 것들을 사랑치 말라 누구든지 세상을 사랑하면 아버지의 사랑이 그 속에 있지 아니하니 이는 세상에 있는 모든 것이 육신의 정욕과 안목의 정욕과 이생의 자랑이니 다 아버지께로 좇아 온 것이 아니요 세상으로 좇아 온 것이라"
+  },
+  {
+    "ref": "로마서 12장 2절",
+    "text": "너희는 이 세대를 본받지 말고 오직 마음을 새롭게 함으로 변화를 받아 하나님의 선하시고 기뻐하시고 온전하신 뜻이 무엇인지 분별하도록 하라"
+  },
+  {
+    "ref": "고린도전서 15장 58절",
+    "text": "그러므로 내 사랑하는 형제들아 견고하며 흔들리지 말며 항상 주의 일에 더욱 힘쓰는 자들이 되라 이는 너희 수고가 주 안에서 헛되지 않은 줄을 앎이니라"
+  },
+  {
+    "ref": "히브리서 12장 3절",
+    "text": "너희가 피곤하여 낙심치 않기 위하여 죄인들의 이같이 자기에게 거역한 일을 참으신 자를 생각하라"
+  },
+  {
+    "ref": "마가복음 10장 45절",
+    "text": "인자의 온 것은 섬김을 받으려 함이 아니라 도리어 섬기려 하고 자기 목숨을 많은 사람의 대속물로 주려 함이니라"
+  },
+  {
+    "ref": "고린도후서 4장 5절",
+    "text": "우리가 우리를 전파하는 것이 아니라 오직 그리스도 예수의 주 되신 것과 또 예수를 위하여 우리가 너희의 종 된 것을 전파함이라"
+  },
+  {
+    "ref": "잠언 3장 9-10절",
+    "text": "네 재물과 네 소산물의 처음 익은 열매로 여호와를 공경하라 그리하면 네 창고가 가득히 차고 네 즙틀에 새 포도즙이 넘치리라"
+  },
+  {
+    "ref": "고린도후서 9장 6-7절",
+    "text": "이것이 곧 적게 심는 자는 적게 거두고 많이 심는 자는 많이 거둔다 하는 말이로다 각각 그 마음에 정한대로 할 것이요 인색함으로나 억지로 하지 말지니 하나님은 즐겨 내는 자를 사랑하시느니라"
+  },
+  {
+    "ref": "사도행전 1장 8절",
+    "text": "오직 성령이 너희에게 임하시면 너희가 권능을 받고 예루살렘과 온 유대와 사마리아와 땅끝까지 이르러 내 증인이 되리라 하시니라"
+  },
+  {
+    "ref": "마태복음 28장 19-20절",
+    "text": "그러므로 너희는 가서 모든 족속으로 제자를 삼아 아버지와 아들과 성령의 이름으로 세례를 주고 내가 너희에게 분부한 모든 것을 가르쳐 지키게 하라 볼지어다 내가 세상 끝날까지 너희와 항상 함께 있으리라 하시니라"
+  },
+  {
+    "ref": "요한복음 13장 34-35절",
+    "text": "새 계명을 너희에게 주노니 서로 사랑하라 내가 너희를 사랑한 것 같이 너희도 서로 사랑하라 너희가 서로 사랑하면 이로써 모든 사람이 너희가 내 제자인 줄 알리라"
+  },
+  {
+    "ref": "요한일서 3장 18절",
+    "text": "자녀들아 우리가 말과 혀로만 사랑하지 말고 오직 행함과 진실함으로 하자"
+  },
+  {
+    "ref": "빌립보서 2장 3-4절",
+    "text": "아무 일에든지 다툼이나 허영으로 하지 말고 오직 겸손한 마음으로 각각 자기보다 남을 낫게 여기고 각각 자기 일을 돌아볼 뿐더러 또한 각각 다른 사람들의 일을 돌아보아 나의 기쁨을 충만케 하라"
+  },
+  {
+    "ref": "베드로전서 5장 5-6절",
+    "text": "젊은 자들아 이와 같이 장로들에게 순복하고 다 서로 겸손으로 허리를 동이라 하나님이 교만한 자를 대적하시되 겸손한 자들에게는 은혜를 주시느니라 그러므로 하나님의 능하신 손 아래서 겸손하라 때가 되면 너희를 높이시리라"
+  },
+  {
+    "ref": "에베소서 5장 3절",
+    "text": "음행과 온갖 더러운 것과 탐욕은 너희 중에서 그 이름이라도 부르지 말라 이는 성도의 마땅한 바니라"
+  },
+  {
+    "ref": "베드로전서 2장 11절",
+    "text": "사랑하는 자들아 나그네와 행인 같은 너희를 권하노니 영혼을 거스려 싸우는 육체의 정욕을 제어하라"
+  },
+  {
+    "ref": "레위기 19장 11절",
+    "text": "너희는 도적질하지 말며 속이지 말며 서로 거짓말하지 말며"
+  },
+  {
+    "ref": "사도행전 24장 16절",
+    "text": "이것을 인하여 나도 하나님과 사람을 대하여 항상 양심에 거리낌이 없기를 힘쓰노라"
+  },
+  {
+    "ref": "히브리서 11장 6절",
+    "text": "믿음이 없이는 기쁘시게 못하나니 하나님께 나아가는 자는 반드시 그가 계신 것과 또한 그가 자기를 찾는 자들에게 상 주시는 이심을 믿어야 할지니라"
+  },
+  {
+    "ref": "로마서 4장 20-21절",
+    "text": "믿음이 없어 하나님의 약속을 의심치 않고 믿음에 견고하여져서 하나님께 영광을 돌리며 약속하신 그것을 또한 능히 이루실 줄을 확신하였으니"
+  },
+  {
+    "ref": "갈라디아서 6장 9-10절",
+    "text": "우리가 선을 행하되 낙심하지 말지니 피곤하지 아니하면 때가 이르매 거두리라 그러므로 우리는 기회 있는대로 모든 이에게 착한 일을 하되 더욱 믿음의 가정들에게 할지니라"
+  },
+  {
+    "ref": "마태복음 5장 16절",
+    "text": "이같이 너희 빛을 사람 앞에 비취게 하여 저희로 너희 착한 행실을 보고 하늘에 계신 너희 아버지께 영광을 돌리게 하라"
+  },
+  {
+    "ref": "로마서 8장 5-6절",
+    "text": "육신을 따르는 자는 육신의 일을, 영을 따르는 자는 영의 일을 생각하나니 육신의 생각은 사망이요 영의 생각은 생명과 평안이니라"
+  },
+  {
+    "ref": "고린도후서 10장 5절",
+    "text": "하나님 아는 것을 대적하여 높아진 것을 다 무너뜨리고 모든 생각을 사로잡아 그리스도에게 복종하게 하니"
+  },
+  {
+    "ref": "요한복음 15장 11절",
+    "text": "내가 이것을 너희에게 이름은 내 기쁨이 너희 안에 있어 너희 기쁨을 충만하게 하려 함이라"
+  },
+  {
+    "ref": "골로새서 3장 16절",
+    "text": "그리스도의 말씀이 너희 속에 풍성히 거하여 모든 지혜로 피차 가르치며 권면하고 시와 찬송과 신령한 노래를 부르며 감사하는 마음으로 하나님을 찬양하고"
+  },
+  {
+    "ref": "로마서 14장 7-8절",
+    "text": "우리 중에 누구든지 자기를 위하여 사는 자가 없고 자기를 위하여 죽는 자도 없도다 우리가 살아도 주를 위하여 살고 죽어도 주를 위하여 죽나니 그러므로 사나 죽으나 우리가 주의 것이로다"
+  },
+  {
+    "ref": "골로새서 2장 6-7절",
+    "text": "그러므로 너희가 그리스도 예수를 주로 받았으니 그 안에서 행하되 그 안에 뿌리를 박으며 세움을 받아 교훈을 받은 대로 믿음에 굳게 서서 감사함을 넘치게 하라"
+  },
+  {
+    "ref": "마태복음 7장 12절",
+    "text": "그러므로 무엇이든지 남에게 대접을 받고자 하는 대로 너희도 남을 대접하라 이것이 율법이요 선지자니라"
+  },
+  {
+    "ref": "마태복음 22장 37-39절",
+    "text": "예수께서 이르시되 네 마음을 다하고 목숨을 다하고 뜻을 다하여 주 너의 하나님을 사랑하라 하셨으니 이것이 크고 첫째 되는 계명이요 둘째도 그와 같으니 네 이웃을 네 자신 같이 사랑하라 하셨으니"
+  },
+  {
+    "ref": "고린도후서 5장 10절",
+    "text": "이는 우리가 다 반드시 그리스도의 심판대 앞에 나타나게 되어 각각 선악간에 그 몸으로 행한 것을 따라 받으려 함이라"
+  },
+  {
+    "ref": "빌립보서 2장 13-14절",
+    "text": "너희 안에서 행하시는 이는 하나님이시니 자기의 기쁘신 뜻을 위하여 너희에게 소원을 두고 행하게 하시나니 모든 일을 원망과 시비가 없이 하라"
+  },
+  {
+    "ref": "베드로전서 5장 10절",
+    "text": "모든 은혜의 하나님 곧 그리스도 안에서 너희를 부르사 자기의 영원한 영광에 들어가게 하신 이가 잠깐 고난을 당한 너희를 친히 온전하게 하시며 굳건하게 하시며 강하게 하시며 터를 견고하게 하시리라"
+  },
+  {
+    "ref": "골로새서 1장 28-29절",
+    "text": "우리가 그를 전파하여 각 사람을 권하고 모든 지혜로 각 사람을 가르침은 각 사람을 그리스도 안에서 완전한 자로 세우려 함이니 이를 위하여 나도 내 속에서 능력으로 역사하시는 이의 역사를 따라 힘을 다하여 수고하노라"
+  }
+];
+      const verseForDate = (date) => {
+        const key = fmtDate(date);
+        let hash = 0;
+        for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+        return BIBLE_VERSES[hash % BIBLE_VERSES.length];
+      };
+      const BADGE_LEGEND = [
+        { key: "qt", glyph: "✦", color: "#5b7cfa", label: "묵상" },
+        { key: "read", glyph: "📖", color: "#4CAF7D", label: "통독" },
+        { key: "pray", glyph: "🙏", color: "#f5a623", label: "기도" },
+        { key: "verse", glyph: "✝", color: "#AB47BC", label: "암송" },
+        { key: "thanks", glyph: "❤", color: "#EC407A", label: "감사" },
+      ];
+      const dayBadges = (data) => {
+        const badges = [];
+        if (data.faith.qt) badges.push({ key: "qt", glyph: "✦", color: "#5b7cfa", title: "묵상(QT)" });
+        if (data.faith.chapters)
+          badges.push({
+            key: "read",
+            glyph: "📖",
+            color: "#4CAF7D",
+            title: `통독 ${data.faith.chapters}장`,
+            text: `${data.faith.chapters}장`,
+          });
+        if (data.faith.prayerMinutes)
+          badges.push({
+            key: "pray",
+            glyph: "🙏",
+            color: "#f5a623",
+            title: `기도 ${data.faith.prayerMinutes}분`,
+            text: `${data.faith.prayerMinutes}분`,
+          });
+        if (data.faith.memorized) badges.push({ key: "verse", glyph: "✝", color: "#AB47BC", title: "암송 완료" });
+        if (data.gratitude.length) badges.push({ key: "thanks", glyph: "❤", color: "#EC407A", title: "감사 기록" });
+        return badges;
+      };
+      const useIsCompact = () => {
+        const [compact, setCompact] = useState(() => window.innerWidth <= 760);
+        useEffect(() => {
+          const onResize = () => setCompact(window.innerWidth <= 760);
+          window.addEventListener("resize", onResize);
+          return () => window.removeEventListener("resize", onResize);
+        }, []);
+        return compact;
+      };
+            const HOURS = Array.from({ length: 24 }, (_, i) => i);
+      const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5);
+      const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+      const pad = (n) => String(n).padStart(2, "0");
+      const fmtDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      const parseDate = (s) => {
+        const [y, m, d] = s.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      };
+      const addDays = (d, n) => {
+        const x = new Date(d);
+        x.setDate(x.getDate() + n);
+        return x;
+      };
+      const startMonday = (d) => {
+        const x = new Date(d);
+        x.setHours(0, 0, 0, 0);
+        x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+        return x;
+      };
+      const weekId = (d) => `week-${fmtDate(startMonday(d))}`;
+      const dayId = (d) => `day-${fmtDate(d)}`;
+      const dateLabel = (d) =>
+        `${d.getMonth() + 1}월 ${d.getDate()}일 ${["일", "월", "화", "수", "목", "금", "토"][d.getDay()]}요일`;
+      const fmtDateTime = (ts) => {
+        if (!ts) return "";
+        const d = new Date(ts);
+        return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      };
+      const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+      const timeToMin = (t) => {
+        if (typeof t === "number") return t;
+        const [h, m] = String(t || "00:00")
+          .split(":")
+          .map(Number);
+        return h * 60 + m;
+      };
+      const minToTime = (m) => {
+        const total = Math.round(m);
+        return `${pad(Math.floor(total / 60) % 24)}:${pad(total % 60)}`;
+      };
+      const snap5 = (m) => Math.round(m / 5) * 5;
+      const snap15 = (m) => Math.round(m / 15) * 15;
+      const SLOT_TIMES = (() => {
+        const slots = [];
+        for (let h = 0; h < 24; h++) for (let m = 0; m < 60; m += 5) slots.push(minToTime(h * 60 + m));
+        return slots;
+      })();
+      const emptyDevotion = () => ({ passage: "", word: "", meditation: "", mood: "", situation: "" });
+      const emptyDay = () => ({
+        todos: [],
+        gratitude: [],
+        prayerTopic: "",
+        devotion: emptyDevotion(),
+        faith: { qt: false, chapters: 0, prayerMinutes: 0, memorized: false },
+        blocksPlan: [],
+        blocksActual: [],
+        focusSessions: [],
+      });
+      const emptyWeek = () => ({
+        tasks: [],
+        faithGoals: { qtTarget: 5, readingTarget: 7, prayerTarget: 100, note: "" },
+        review: { wins: "", reflection: "", next: "" },
+      });
+      const emptyStore = () => ({
+        version: 6,
+        projects: [{ id: DEFAULT_PROJECT_ID, name: "Events·일정", color: COLORS[0], archived: false }],
+        days: {},
+        weeks: {},
+        prayerGroups: [],
+        sidebarOrder: [...DEFAULT_SIDEBAR_ORDER],
+        settings: { dayStartMin: DEFAULT_DAY_START, scheduleZoom: DEFAULT_SCHEDULE_ZOOM },
+        scratch: { content: "", updatedAt: null },
+        memoSnapshots: [],
+        createdAt: Date.now(),
+      });
+      const nextMemoPosition = (count) => ({
+        x: 24 + (count % 4) * (MEMO_CARD_W + 18),
+        y: 24 + Math.floor(count / 4) * (MEMO_CARD_H + 30),
+      });
+      function normalizeBlock(b) {
+        const start = snap5(clamp(timeToMin(b.startMin ?? b.startTime), 0, 1425));
+        const end = snap5(clamp(timeToMin(b.endMin ?? b.endTime), start + 5, 1440));
+        return {
+          ...b,
+          id: b.id || uid(),
+          title: b.title || "일정",
+          startMin: start,
+          endMin: end,
+          color: b.color || COLORS[0],
+          createdAt: b.createdAt || Date.now(),
+        };
+      }
+      function computeBlockLayout(blocks) {
+        const sorted = [...blocks].sort(
+          (a, b) => a.startMin - b.startMin || (a.createdAt ?? 0) - (b.createdAt ?? 0)
+        );
+        const colEnd = [];
+        const colOf = {};
+        for (const block of sorted) {
+          let col = colEnd.findIndex((end) => end <= block.startMin);
+          if (col === -1) {
+            col = colEnd.length;
+            colEnd.push(block.endMin);
+          } else {
+            colEnd[col] = block.endMin;
+          }
+          colOf[block.id] = col;
+        }
+        const layout = {};
+        for (const block of blocks) {
+          const overlapping = blocks.filter(
+            (b) => b.startMin < block.endMin && b.endMin > block.startMin
+          );
+          const cols = Math.max(...overlapping.map((b) => colOf[b.id] + 1), colOf[block.id] + 1, 1);
+          layout[block.id] = { col: colOf[block.id], cols };
+        }
+        return layout;
+      }
+      function normalizeDay(raw = {}) {
+        return {
+          ...emptyDay(),
+          ...raw,
+          todos: (Array.isArray(raw.todos) ? raw.todos : []).map((t, i) => ({
+            ...t,
+            order: t.order ?? i + 1,
+          })),
+          gratitude: Array.isArray(raw.gratitude) ? raw.gratitude : [],
+          prayerTopic: typeof raw.prayerTopic === "string" ? raw.prayerTopic : "",
+          devotion: {
+            ...emptyDevotion(),
+            ...(raw.devotion && typeof raw.devotion === "object" ? raw.devotion : { meditation: raw.devotion || "" }),
+            word: raw.devotion?.word || (raw.verses || []).map((v) => v.text).join("\n"),
+          },
+          faith: { ...emptyDay().faith, ...raw.faith },
+          blocksPlan: (raw.blocksPlan || []).map((b, i) =>
+            normalizeBlock({ ...b, createdAt: b.createdAt ?? (i + 1) * 1000 })
+          ),
+          blocksActual: (raw.blocksActual || raw.blocksReflect || []).map(normalizeBlock),
+          focusSessions: raw.focusSessions || [],
+        };
+      }
+      function normalizeStore(raw) {
+        const base = emptyStore();
+        const projects = (
+          Array.isArray(raw?.projects) && raw.projects.length ? raw.projects : base.projects
+        ).map((project) =>
+          project.id === DEFAULT_PROJECT_ID && project.name === "기본"
+            ? { ...project, name: "Events·일정" }
+            : project
+        );
+        const renameDefault = (project) =>
+          project.id === DEFAULT_PROJECT_ID && project.name === "기본"
+            ? { ...project, name: "Events·일정" }
+            : project;
+        const weeks = Object.fromEntries(
+          Object.entries(raw?.weeks || {}).map(([key, week]) => [
+            key,
+            {
+              ...week,
+              projects:
+                Array.isArray(week?.projects) && week.projects.length
+                  ? week.projects.map(renameDefault)
+                  : projects.map((project) => ({ ...project })),
+            },
+          ])
+        );
+        return {
+          ...base,
+          ...raw,
+          version: 6,
+          projects,
+          days: raw?.days || {},
+          weeks,
+          prayerGroups: (Array.isArray(raw?.prayerGroups) ? raw.prayerGroups : []).map((g, i) => ({
+            ...g,
+            tags: Array.isArray(g.tags) ? g.tags : [],
+            order: g.order ?? i,
+          })),
+          sidebarOrder: (() => {
+            const saved = Array.isArray(raw?.sidebarOrder) && raw.sidebarOrder.length
+              ? raw.sidebarOrder
+              : [...DEFAULT_SIDEBAR_ORDER];
+            const missing = DEFAULT_SIDEBAR_ORDER.filter((id) => !saved.includes(id));
+            return [...saved, ...missing];
+          })(),
+          settings: {
+            dayStartMin: clamp(
+              timeToMin(raw?.settings?.dayStartMin ?? DEFAULT_DAY_START),
+              0,
+              1380
+            ),
+            scheduleZoom: clamp(
+              Number(raw?.settings?.scheduleZoom ?? DEFAULT_SCHEDULE_ZOOM),
+              MIN_SCHEDULE_ZOOM,
+              MAX_SCHEDULE_ZOOM
+            ),
+          },
+          scratch: {
+            content: typeof raw?.scratch?.content === "string" ? raw.scratch.content : "",
+            updatedAt: raw?.scratch?.updatedAt || null,
+          },
+          memoSnapshots: Array.isArray(raw?.memoSnapshots)
+            ? raw.memoSnapshots.map((m, i) => ({
+                id: m.id || uid(),
+                title: m.title || "제목 없는 메모",
+                body: m.body || "",
+                color: m.color || COLORS[3],
+                tags: Array.isArray(m.tags) ? m.tags : [],
+                savedAt: m.savedAt || Date.now(),
+                x: m.x ?? nextMemoPosition(i).x,
+                y: m.y ?? nextMemoPosition(i).y,
+              }))
+            : [],
+        };
+      }
+      const cloneProjects = (projects) => projects.map((project) => ({ ...project }));
+      function getWeekProjects(store, date) {
+        const currentKey = weekId(date);
+        const current = store.weeks[currentKey]?.projects;
+        if (Array.isArray(current) && current.length) return current;
+        const targetTime = startMonday(date).getTime();
+        const previous = Object.entries(store.weeks)
+          .filter(([, week]) => Array.isArray(week?.projects) && week.projects.length)
+          .map(([key, week]) => ({ time: parseDate(key.slice(5)).getTime(), projects: week.projects }))
+          .filter((entry) => entry.time < targetTime)
+          .sort((a, b) => b.time - a.time)[0];
+        return cloneProjects(previous?.projects || store.projects || emptyStore().projects);
+      }
+      function migrateLegacy() {
+        const root = emptyStore(),
+          byName = new Map([["기본", root.projects[0]]]),
+          legacyMap = new Map();
+        const ensureProject = (g) => {
+          const name = (g?.name || "기본").trim() || "기본";
+          if (byName.has(name)) {
+            const p = byName.get(name);
+            if (g?.id) legacyMap.set(g.id, p.id);
+            return p.id;
+          }
+          const p = {
+            id: `project-${uid()}`,
+            name,
+            color: g?.color || COLORS[root.projects.length % COLORS.length],
+            archived: false,
+          };
+          root.projects.push(p);
+          byName.set(name, p);
+          if (g?.id) legacyMap.set(g.id, p.id);
+          return p.id;
+        };
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+        keys
+          .filter((k) => k && k.startsWith("day-"))
+          .forEach((key) => {
+            try {
+              const old = JSON.parse(localStorage.getItem(key));
+              (old.todoGroups || []).forEach(ensureProject);
+              const day = normalizeDay(old);
+              day.todos = (old.todos || []).map((t) => ({
+                ...t,
+                id: t.id || uid(),
+                projectId: legacyMap.get(t.projectId || t.groupId) || DEFAULT_PROJECT_ID,
+                priority: t.priority || "normal",
+                focus: !!t.focus,
+              }));
+              root.days[key] = day;
+            } catch (e) {}
+          });
+        keys
+          .filter((k) => k && k.startsWith("week-"))
+          .forEach((key) => {
+            try {
+              const old = JSON.parse(localStorage.getItem(key));
+              (old.groups || []).forEach(ensureProject);
+              root.weeks[key] = {
+                ...emptyWeek(),
+                ...old,
+                projects: (old.groups || []).map((group) => {
+                  const id = ensureProject(group);
+                  return { ...root.projects.find((project) => project.id === id) };
+                }),
+                tasks: (old.tasks || []).map((t) => ({
+                  ...t,
+                  id: t.id || uid(),
+                  projectId: legacyMap.get(t.projectId || t.groupId) || DEFAULT_PROJECT_ID,
+                })),
+              };
+            } catch (e) {}
+          });
+        return root;
+      }
+      function loadStore() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          return saved ? normalizeStore(JSON.parse(saved)) : migrateLegacy();
+        } catch (e) {
+          return emptyStore();
+        }
+      }
+      function Button({ children, className = "", ...props }) {
+        return (
+          <button className={`btn ${className}`} {...props}>
+            {children}
+          </button>
+        );
+      }
+      function Card({ title, action, children, className = "" }) {
+        return (
+          <section className={`card ${className}`}>
+            {title && (
+              <div className="card-head">
+                <h3>{title}</h3>
+                {action}
+              </div>
+            )}
+            {children}
+          </section>
+        );
+      }
+      const sortByOrder = (items) =>
+        [...items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || (a.createdAt ?? 0) - (b.createdAt ?? 0));
+      const nextOrder = (items) => (items.reduce((m, t) => Math.max(m, t.order ?? 0), 0) || 0) + 1;
+      const findNextSlot = (blocks, dayStartMin) => {
+        const now = new Date();
+        let candidate = snap15(Math.max(dayStartMin, now.getHours() * 60 + now.getMinutes()));
+        const sorted = [...blocks].sort((a, b) => a.startMin - b.startMin);
+        for (const block of sorted) {
+          if (candidate >= block.startMin && candidate < block.endMin) candidate = block.endMin;
+        }
+        if (candidate + 45 > 1440) candidate = dayStartMin;
+        return snap15(candidate);
+      };
+      function TimeSelectRow({ label, value, onChange }) {
+        const h = Math.floor(value / 60);
+        const m = value % 60;
+        return (
+          <div>
+            <label className="label">{label}</label>
+            <div className="time-select-row">
+              <select className="field" value={h} onChange={(e) => onChange(+e.target.value * 60 + m)}>
+                {HOURS.map((hour) => (
+                  <option key={hour} value={hour}>
+                    {pad(hour)}
+                  </option>
+                ))}
+              </select>
+              <span>:</span>
+              <select className="field" value={m} onChange={(e) => onChange(h * 60 + +e.target.value)}>
+                {MINUTES.map((minute) => (
+                  <option key={minute} value={minute}>
+                    {pad(minute)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        );
+      }
+      function ColorPalette({ value, onChange }) {
+        return (
+          <div>
+            <label className="label">색상</label>
+            <div className="color-palette">
+              {COLORS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  className={value === color ? "on" : ""}
+                  style={{ background: color, color }}
+                  onClick={() => onChange(color)}
+                  aria-label={`색상 ${color}`}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      }
+      function BlockModal({ block, onSave, onClose, onDelete }) {
+        const [draft, setDraft] = useState(block);
+        useEffect(() => {
+          setDraft(block);
+        }, [block]);
+        const save = () => {
+          if (!draft.title.trim()) return;
+          if (draft.endMin <= draft.startMin) return;
+          onSave({ ...draft, title: draft.title.trim() });
+        };
+        return (
+          <div className="modal-backdrop" onClick={onClose}>
+            <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+              <div className="modal-head">
+                <h3>시간 블록 설정</h3>
+                <button className="btn ghost" onClick={onClose}>
+                  닫기
+                </button>
+              </div>
+              <div className="modal-body">
+                <div>
+                  <label className="label">제목</label>
+                  <input
+                    className="field"
+                    value={draft.title}
+                    onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                    placeholder="일정 제목"
+                    onKeyDown={(e) => e.key === "Enter" && save()}
+                  />
+                </div>
+                <div className="grid grid-2">
+                  <TimeSelectRow
+                    label="시작"
+                    value={draft.startMin}
+                    onChange={(startMin) => setDraft({ ...draft, startMin })}
+                  />
+                  <TimeSelectRow
+                    label="끝"
+                    value={draft.endMin}
+                    onChange={(endMin) => setDraft({ ...draft, endMin })}
+                  />
+                </div>
+                <ColorPalette value={draft.color} onChange={(color) => setDraft({ ...draft, color })} />
+              </div>
+              <div className="modal-foot">
+                {!block.isNew && onDelete && (
+                  <Button className="danger" onClick={onDelete} style={{ marginRight: "auto" }}>
+                    삭제
+                  </Button>
+                )}
+                <Button onClick={onClose}>취소</Button>
+                <Button className="primary" onClick={save} disabled={!draft.title.trim() || draft.endMin <= draft.startMin}>
+                  저장
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      function SnapshotModal({ defaultTitle, onSave, onClose }) {
+        const [title, setTitle] = useState(defaultTitle || "");
+        const [color, setColor] = useState(COLORS[3]);
+        const [clearAfter, setClearAfter] = useState(false);
+        const titleRef = useRef(null);
+        useEffect(() => {
+          requestAnimationFrame(() => titleRef.current?.focus());
+        }, []);
+        const save = () => onSave({ title: title.trim() || "제목 없는 메모", color, clearAfter });
+        return (
+          <div className="modal-backdrop" onClick={onClose}>
+            <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+              <div className="modal-head">
+                <h3>포스트잇으로 저장</h3>
+                <button className="btn ghost" onClick={onClose}>
+                  닫기
+                </button>
+              </div>
+              <div className="modal-body">
+                <div>
+                  <label className="label">제목</label>
+                  <input
+                    ref={titleRef}
+                    className="field"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="예: 오늘 회의 정리"
+                    onKeyDown={(e) => e.key === "Enter" && save()}
+                  />
+                </div>
+                <ColorPalette value={color} onChange={setColor} />
+                <label className="row" style={{ gap: 8, fontSize: 12, color: "var(--muted)" }}>
+                  <input type="checkbox" checked={clearAfter} onChange={(e) => setClearAfter(e.target.checked)} />
+                  저장 후 메모장 비우기
+                </label>
+              </div>
+              <div className="modal-foot">
+                <Button onClick={onClose}>취소</Button>
+                <Button className="primary" onClick={save}>
+                  포스트잇으로 저장
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      function ScratchPad({ store, setStore, toast }) {
+        const scratch = store.scratch || { content: "", updatedAt: null };
+        const [value, setValue] = useState(scratch.content);
+        const [showSnapshot, setShowSnapshot] = useState(false);
+        const timerRef = useRef(null);
+        useEffect(() => {
+          setValue(scratch.content);
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [scratch.content]);
+        useEffect(() => () => window.clearTimeout(timerRef.current), []);
+        const commit = (text) => {
+          setStore((s) => ({ ...s, scratch: { content: text, updatedAt: Date.now() } }));
+        };
+        const onChange = (e) => {
+          const text = e.target.value;
+          setValue(text);
+          window.clearTimeout(timerRef.current);
+          timerRef.current = window.setTimeout(() => commit(text), 400);
+        };
+        const openSnapshot = () => {
+          if (!value.trim()) {
+            toast?.("저장할 내용이 없습니다");
+            return;
+          }
+          setShowSnapshot(true);
+        };
+        const saveSnapshot = ({ title, color, clearAfter }) => {
+          setStore((s) => {
+            const list = s.memoSnapshots || [];
+            const pos = nextMemoPosition(list.length);
+            const snap = {
+              id: uid(),
+              title,
+              body: value,
+              color,
+              savedAt: Date.now(),
+              x: pos.x,
+              y: pos.y,
+            };
+            return {
+              ...s,
+              memoSnapshots: [...list, snap],
+              scratch: clearAfter ? { content: "", updatedAt: Date.now() } : { ...s.scratch, updatedAt: Date.now() },
+            };
+          });
+          if (clearAfter) setValue("");
+          setShowSnapshot(false);
+          toast?.("포스트잇으로 저장했습니다");
+        };
+        return (
+          <Card
+            title="메모장"
+            action={
+              <Button className="primary" onClick={openSnapshot}>
+                📌 스냅샷
+              </Button>
+            }
+          >
+            <div className="card-pad stack">
+              <textarea
+                className="field textarea scratch-textarea"
+                value={value}
+                onChange={onChange}
+                placeholder="떠오르는 생각을 자유롭게 적어보세요. 날짜가 바뀌어도 계속 유지됩니다."
+              />
+              <div className="scratch-meta">
+                <span>
+                  {value.length}자 · {value.split("\n").length}줄
+                </span>
+                <span>{scratch.updatedAt ? `마지막 저장 ${fmtDateTime(scratch.updatedAt)}` : "아직 저장 전"}</span>
+              </div>
+            </div>
+            {showSnapshot && (
+              <SnapshotModal
+                defaultTitle={value.split("\n")[0].slice(0, 24)}
+                onClose={() => setShowSnapshot(false)}
+                onSave={saveSnapshot}
+              />
+            )}
+          </Card>
+        );
+      }
+      function TagChips({ tags, onRemove }) {
+        if (!tags.length) return null;
+        return (
+          <div className="tag-row">
+            {tags.map((t) => (
+              <span className="tag-chip" key={t}>
+                #{t}
+                {onRemove && (
+                  <button type="button" onClick={() => onRemove(t)} aria-label={`태그 ${t} 삭제`}>
+                    ×
+                  </button>
+                )}
+              </span>
+            ))}
+          </div>
+        );
+      }
+      function MemoListTagAdd({ memo, onAdd }) {
+        const [open, setOpen] = useState(false);
+        const [value, setValue] = useState("");
+        const composingRef = useRef(false);
+        const submit = () => {
+          if (composingRef.current) return;
+          const t = value.trim();
+          if (!t || (memo.tags || []).includes(t)) {
+            setValue("");
+            return;
+          }
+          onAdd(t);
+          setValue("");
+        };
+        if (!open) {
+          return (
+            <button type="button" className="memo-tag-add-btn" onClick={() => setOpen(true)}>
+              🏷 태그추가
+            </button>
+          );
+        }
+        return (
+          <div className="tag-add-row" style={{ maxWidth: 220 }}>
+            <input
+              className="field"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              onCompositionStart={() => (composingRef.current = true)}
+              onCompositionEnd={() => (composingRef.current = false)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !composingRef.current) {
+                  e.preventDefault();
+                  submit();
+                }
+              }}
+              placeholder="태그 입력 후 Enter"
+              autoFocus
+            />
+            <Button onClick={submit}>추가</Button>
+          </div>
+        );
+      }
+      function MemoCard({ memo, onChange, onRemove, onBringFront, zIndex, scale }) {
+        const dragRef = useRef(null);
+        const touchRef = useRef(null);
+        const longPressTimerRef = useRef(null);
+        const [touchDragging, setTouchDragging] = useState(false);
+        const [showTagAdd, setShowTagAdd] = useState(false);
+        const [tagValue, setTagValue] = useState("");
+        const composingRef = useRef(false);
+        const tags = memo.tags || [];
+        const onMouseDown = (e) => {
+          if (e.target.closest(".memo-card-title") || e.target.closest(".memo-card-skip")) return;
+          onBringFront();
+          dragRef.current = { startX: e.clientX, startY: e.clientY, origX: memo.x, origY: memo.y };
+          const onMove = (ev) => {
+            const d = dragRef.current;
+            if (!d) return;
+            const dx = (ev.clientX - d.startX) / scale;
+            const dy = (ev.clientY - d.startY) / scale;
+            onChange({
+              x: clamp(d.origX + dx, 0, MEMO_CANVAS_W - MEMO_CARD_W),
+              y: clamp(d.origY + dy, 0, MEMO_CANVAS_H - MEMO_CARD_H),
+            });
+          };
+          const onUp = () => {
+            dragRef.current = null;
+            window.removeEventListener("mousemove", onMove);
+            window.removeEventListener("mouseup", onUp);
+          };
+          window.addEventListener("mousemove", onMove);
+          window.addEventListener("mouseup", onUp);
+        };
+        const clearLongPress = () => {
+          if (longPressTimerRef.current) {
+            window.clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+          }
+        };
+        const onTouchStart = (e) => {
+          if (e.target.closest(".memo-card-title") || e.target.closest(".memo-card-skip")) return;
+          if (e.touches.length !== 1) return;
+          e.stopPropagation();
+          const touch = e.touches[0];
+          touchRef.current = {
+            id: touch.identifier,
+            startX: touch.clientX,
+            startY: touch.clientY,
+            origX: memo.x,
+            origY: memo.y,
+            active: false,
+          };
+          clearLongPress();
+          longPressTimerRef.current = window.setTimeout(() => {
+            longPressTimerRef.current = null;
+            if (!touchRef.current) return;
+            touchRef.current.active = true;
+            onBringFront();
+            setTouchDragging(true);
+            if (window.navigator?.vibrate) window.navigator.vibrate(20);
+          }, 400);
+        };
+        useEffect(() => {
+          const findTouch = (touches, id) => Array.from(touches).find((t) => t.identifier === id);
+          const onTouchMove = (e) => {
+            const g = touchRef.current;
+            if (!g) return;
+            const touch = findTouch(e.touches, g.id);
+            if (!touch) return;
+            const dx = touch.clientX - g.startX;
+            const dy = touch.clientY - g.startY;
+            if (!g.active) {
+              if (Math.hypot(dx, dy) > 10) {
+                clearLongPress();
+                touchRef.current = null;
+              }
+              return;
+            }
+            if (e.cancelable) e.preventDefault();
+            onChange({
+              x: clamp(g.origX + dx / scale, 0, MEMO_CANVAS_W - MEMO_CARD_W),
+              y: clamp(g.origY + dy / scale, 0, MEMO_CANVAS_H - MEMO_CARD_H),
+            });
+          };
+          const onTouchEnd = (e) => {
+            const g = touchRef.current;
+            if (!g) return;
+            const stillTouching = findTouch(e.touches, g.id);
+            if (!stillTouching) {
+              clearLongPress();
+              touchRef.current = null;
+              setTouchDragging(false);
+            }
+          };
+          document.addEventListener("touchmove", onTouchMove, { passive: false });
+          document.addEventListener("touchend", onTouchEnd);
+          document.addEventListener("touchcancel", onTouchEnd);
+          return () => {
+            document.removeEventListener("touchmove", onTouchMove);
+            document.removeEventListener("touchend", onTouchEnd);
+            document.removeEventListener("touchcancel", onTouchEnd);
+            clearLongPress();
+          };
+        }, [scale]);
+        const addTag = () => {
+          if (composingRef.current) return;
+          const t = tagValue.trim();
+          if (!t || tags.includes(t)) {
+            setTagValue("");
+            return;
+          }
+          onChange({ tags: [...tags, t] });
+          setTagValue("");
+        };
+        const removeTag = (t) => onChange({ tags: tags.filter((x) => x !== t) });
+        return (
+          <div
+            className={`memo-card ${touchDragging ? "touch-dragging" : ""}`}
+            style={{ left: memo.x, top: memo.y, background: memo.color, zIndex }}
+            onMouseDown={onMouseDown}
+            onTouchStart={onTouchStart}
+          >
+            <div className="memo-card-head">
+              <input
+                className="memo-card-title"
+                value={memo.title}
+                onChange={(e) => onChange({ title: e.target.value })}
+              />
+              <button
+                type="button"
+                className="btn ghost danger memo-card-skip"
+                onClick={onRemove}
+                aria-label="메모 삭제"
+              >
+                ×
+              </button>
+            </div>
+            <div className="memo-card-meta memo-card-skip">
+              <span className="memo-card-date">{fmtDateTime(memo.savedAt)}</span>
+              <button
+                type="button"
+                className="memo-tag-add-btn"
+                onClick={() => setShowTagAdd((v) => !v)}
+                aria-label="태그 추가"
+              >
+                🏷 태그추가
+              </button>
+            </div>
+            <div className="memo-card-skip">
+              <TagChips tags={tags} onRemove={removeTag} />
+            </div>
+            {showTagAdd && (
+              <div className="tag-add-row memo-card-skip">
+                <input
+                  className="field"
+                  value={tagValue}
+                  onChange={(e) => setTagValue(e.target.value)}
+                  onCompositionStart={() => (composingRef.current = true)}
+                  onCompositionEnd={() => (composingRef.current = false)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !composingRef.current) {
+                      e.preventDefault();
+                      addTag();
+                    }
+                  }}
+                  placeholder="태그 입력 후 Enter"
+                  autoFocus
+                />
+                <Button onClick={addTag}>추가</Button>
+              </div>
+            )}
+            <div className="memo-card-body">{memo.body}</div>
+            <div className="memo-card-palette memo-card-skip">
+              {COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className={c === memo.color ? "selected" : ""}
+                  style={{ background: c }}
+                  onClick={() => onChange({ color: c })}
+                  aria-label={`색상 ${c}`}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      }
+      function MemoView({ store, setStore, toast }) {
+        const [mode, setMode] = useState("board");
+        const [query, setQuery] = useState("");
+        const [colorFilter, setColorFilter] = useState(null);
+        const [tagFilter, setTagFilter] = useState(null);
+        const [boardScale, setBoardScale] = useState(1);
+        const boardRef = useRef(null);
+        const boardGestureRef = useRef(null);
+        const memos = store.memoSnapshots || [];
+        const allTags = Array.from(new Set(memos.flatMap((m) => m.tags || []))).sort();
+        const q = query.trim().toLowerCase();
+        const filtered = memos.filter(
+          (m) =>
+            (!colorFilter || m.color === colorFilter) &&
+            (!tagFilter || (m.tags || []).includes(tagFilter)) &&
+            (!q || `${m.title} ${m.body} ${(m.tags || []).join(" ")}`.toLowerCase().includes(q))
+        );
+        const patchMemo = (id, patch) =>
+          setStore((s) => ({
+            ...s,
+            memoSnapshots: (s.memoSnapshots || []).map((m) => (m.id === id ? { ...m, ...patch } : m)),
+          }));
+        const onBoardTouchStart = (e) => {
+          if (e.touches.length === 2) {
+            const [a, b] = e.touches;
+            boardGestureRef.current = {
+              type: "pinch",
+              dist: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+              scale: boardScale,
+            };
+          } else if (e.touches.length === 1 && !e.target.closest(".memo-card")) {
+            const touch = e.touches[0];
+            const el = boardRef.current;
+            boardGestureRef.current = {
+              type: "pan",
+              startX: touch.clientX,
+              startY: touch.clientY,
+              scrollLeft: el?.scrollLeft || 0,
+              scrollTop: el?.scrollTop || 0,
+            };
+          }
+        };
+        const onBoardTouchMove = (e) => {
+          const g = boardGestureRef.current;
+          if (!g) return;
+          if (g.type === "pinch" && e.touches.length === 2) {
+            if (e.cancelable) e.preventDefault();
+            const [a, b] = e.touches;
+            const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+            setBoardScale(clamp(g.scale * (dist / g.dist), 0.4, 2.5));
+          } else if (g.type === "pan" && e.touches.length === 1) {
+            const el = boardRef.current;
+            if (!el) return;
+            if (e.cancelable) e.preventDefault();
+            const touch = e.touches[0];
+            el.scrollLeft = g.scrollLeft - (touch.clientX - g.startX);
+            el.scrollTop = g.scrollTop - (touch.clientY - g.startY);
+          }
+        };
+        const onBoardTouchEnd = (e) => {
+          if (e.touches.length === 0) boardGestureRef.current = null;
+          else if (e.touches.length === 1 && boardGestureRef.current?.type === "pinch")
+            boardGestureRef.current = null;
+        };
+        useEffect(() => {
+          const el = boardRef.current;
+          if (!el) return;
+          // Trackpad pinch-to-zoom on desktop is reported by the browser as a
+          // wheel event with ctrlKey set to true (same signal used for page zoom).
+          const onWheel = (e) => {
+            if (!e.ctrlKey) return;
+            e.preventDefault();
+            setBoardScale((s) => clamp(s - e.deltaY * 0.01, 0.4, 2.5));
+          };
+          el.addEventListener("wheel", onWheel, { passive: false });
+          return () => el.removeEventListener("wheel", onWheel);
+        }, []);
+        const removeMemo = (id) => {
+          if (!window.confirm("이 메모를 삭제할까요?")) return;
+          setStore((s) => ({ ...s, memoSnapshots: (s.memoSnapshots || []).filter((m) => m.id !== id) }));
+          toast?.("메모를 삭제했습니다");
+        };
+        const bringFront = (id) =>
+          setStore((s) => {
+            const list = s.memoSnapshots || [];
+            const idx = list.findIndex((m) => m.id === id);
+            if (idx < 0 || idx === list.length - 1) return s;
+            const next = [...list];
+            const [item] = next.splice(idx, 1);
+            next.push(item);
+            return { ...s, memoSnapshots: next };
+          });
+        return (
+          <div className="stack">
+            <div className="hero">
+              <div>
+                <div className="eyebrow">MEMO BOARD</div>
+                <h1 className="page-title">메모 보관함</h1>
+                <div className="page-sub">메모장에 자유롭게 적고, 남기고 싶은 순간은 포스트잇으로 저장하세요.</div>
+              </div>
+            </div>
+            <ScratchPad store={store} setStore={setStore} toast={toast} />
+            <Card
+              title={`저장된 메모 ${memos.length}개`}
+              action={
+                <div className="view-toggle">
+                  <button className={mode === "board" ? "active" : ""} onClick={() => setMode("board")}>
+                    보드
+                  </button>
+                  <button className={mode === "list" ? "active" : ""} onClick={() => setMode("list")}>
+                    목록
+                  </button>
+                </div>
+              }
+            >
+              <div className="card-pad">
+                <div className="memo-toolbar">
+                  <input
+                    className="field grow"
+                    style={{ flex: 1, minWidth: 160 }}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="제목·내용 검색"
+                  />
+                  <div className="memo-color-filters">
+                    <button
+                      type="button"
+                      className={`memo-filter-chip all ${!colorFilter ? "on" : ""}`}
+                      onClick={() => setColorFilter(null)}
+                      aria-label="전체"
+                      title="전체"
+                    />
+                    {COLORS.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        className={`memo-filter-chip ${colorFilter === c ? "on" : ""}`}
+                        style={{ background: c, color: c }}
+                        onClick={() => setColorFilter(colorFilter === c ? null : c)}
+                        aria-label={`색상 ${c}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {allTags.length > 0 && (
+                  <div className="memo-tag-filters" style={{ marginBottom: 14 }}>
+                    <span className="tiny muted">태그</span>
+                    <button
+                      type="button"
+                      className={`tag-chip ${!tagFilter ? "on" : ""}`}
+                      onClick={() => setTagFilter(null)}
+                    >
+                      전체
+                    </button>
+                    {allTags.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        className={`tag-chip ${tagFilter === t ? "on" : ""}`}
+                        onClick={() => setTagFilter(tagFilter === t ? null : t)}
+                      >
+                        #{t}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {filtered.length === 0 ? (
+                  <div className="memo-empty">
+                    {memos.length === 0
+                      ? "아직 저장된 메모가 없습니다. 메모장에서 스냅샷을 남겨보세요."
+                      : "조건에 맞는 메모가 없습니다."}
+                  </div>
+                ) : mode === "board" ? (
+                  <>
+                    <div className="memo-zoom-toolbar">
+                      <Button className="ghost" onClick={() => setBoardScale((v) => clamp(v - 0.15, 0.4, 2.5))}>
+                        −
+                      </Button>
+                      <span className="tb-zoom-value">{Math.round(boardScale * 100)}%</span>
+                      <Button className="ghost" onClick={() => setBoardScale((v) => clamp(v + 0.15, 0.4, 2.5))}>
+                        +
+                      </Button>
+                      <Button className="soft" onClick={() => setBoardScale(1)}>
+                        맞춤
+                      </Button>
+                      <span className="tiny muted">
+                        모바일: 두 손가락 확대·축소 · 카드 길게 눌러 이동 · 데스크톱: 트랙패드 두 손가락 확대·축소
+                      </span>
+                    </div>
+                    <div
+                      className="memo-board"
+                      ref={boardRef}
+                      onTouchStart={onBoardTouchStart}
+                      onTouchMove={onBoardTouchMove}
+                      onTouchEnd={onBoardTouchEnd}
+                    >
+                      <div style={{ width: MEMO_CANVAS_W * boardScale, height: MEMO_CANVAS_H * boardScale }}>
+                        <div
+                          className="memo-canvas"
+                          style={{ transform: `scale(${boardScale})`, transformOrigin: "0 0" }}
+                        >
+                          {filtered.map((m, i) => (
+                            <MemoCard
+                              key={m.id}
+                              memo={m}
+                              zIndex={i + 1}
+                              scale={boardScale}
+                              onChange={(patch) => patchMemo(m.id, patch)}
+                              onRemove={() => removeMemo(m.id)}
+                              onBringFront={() => bringFront(m.id)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="memo-list">
+                    {[...filtered]
+                      .sort((a, b) => b.savedAt - a.savedAt)
+                      .map((m) => (
+                        <div className="memo-list-item" key={m.id}>
+                          <span className="dot" style={{ background: m.color, width: 12, height: 12, borderRadius: "50%", flex: "0 0 auto" }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div className="row" style={{ justifyContent: "space-between", gap: 8 }}>
+                              <input
+                                className="memo-list-title"
+                                value={m.title}
+                                onChange={(e) => patchMemo(m.id, { title: e.target.value })}
+                              />
+                              <span className="memo-list-date">{fmtDateTime(m.savedAt)}</span>
+                            </div>
+                            <div className="memo-list-body">{m.body}</div>
+                            <TagChips
+                              tags={m.tags || []}
+                              onRemove={(t) => patchMemo(m.id, { tags: (m.tags || []).filter((x) => x !== t) })}
+                            />
+                            <MemoListTagAdd memo={m} onAdd={(t) => patchMemo(m.id, { tags: [...(m.tags || []), t] })} />
+                          </div>
+                          <button className="btn ghost danger" onClick={() => removeMemo(m.id)}>
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+        );
+      }
+      function Sidebar({ store, setStore, date, setDate, setView, toast }) {
+        const order = store.sidebarOrder || DEFAULT_SIDEBAR_ORDER;
+        const [dragId, setDragId] = useState(null);
+        const panels = {
+          miniWeek: <MiniWeek date={date} setDate={setDate} setView={setView} />,
+          projects: <ProjectManager store={store} setStore={setStore} currentDate={date} toast={toast} />,
+          faith: <FaithProgress store={store} date={date} />,
+          scratch: (
+            <div className="sidebar-scratch">
+              <ScratchPad store={store} setStore={setStore} toast={toast} />
+            </div>
+          ),
+          data: (
+            <Card title="데이터">
+              <div className="card-pad">
+                <DataTools store={store} setStore={setStore} toast={toast} />
+              </div>
+            </Card>
+          ),
+        };
+        const reorder = (targetId) => {
+          if (!dragId || dragId === targetId) return;
+          setStore((s) => {
+            const cur = [...(s.sidebarOrder || DEFAULT_SIDEBAR_ORDER)];
+            const from = cur.indexOf(dragId);
+            const to = cur.indexOf(targetId);
+            if (from < 0 || to < 0) return s;
+            cur.splice(from, 1);
+            cur.splice(to, 0, dragId);
+            return { ...s, sidebarOrder: cur };
+          });
+          setDragId(null);
+        };
+        return (
+          <aside className="sidebar">
+            <div className="sticky stack">
+              {order.map((id) =>
+                panels[id] ? (
+                  <div
+                    key={id}
+                    className={`sidebar-panel ${dragId === id ? "dragging" : ""}`}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => reorder(id)}
+                  >
+                    <button
+                      type="button"
+                      className="sidebar-grip"
+                      draggable
+                      title="패널 순서 변경"
+                      aria-label="패널 순서 변경"
+                      onDragStart={() => setDragId(id)}
+                      onDragEnd={() => setDragId(null)}
+                    >
+                      ⠿
+                    </button>
+                    {panels[id]}
+                  </div>
+                ) : null
+              )}
+            </div>
+          </aside>
+        );
+      }
+      function Progress({ value, max }) {
+        const pct = max > 0 ? clamp(Math.round((value / max) * 100), 0, 100) : 0;
+        return (
+          <div className="progress" title={`${value}/${max}`}>
+            <i style={{ width: `${pct}%` }} />
+          </div>
+        );
+      }
+      function ProjectManager({ store, setStore, currentDate, toast }) {
+        const projects = getWeekProjects(store, currentDate);
+        const wid = weekId(currentDate);
+        const week = { ...emptyWeek(), ...(store.weeks[wid] || {}), projects };
+        const patchWeek = (fn) =>
+          setStore((s) => {
+            const inherited = getWeekProjects(s, currentDate);
+            const current = {
+              ...emptyWeek(),
+              ...(s.weeks[wid] || {}),
+              projects: cloneProjects(s.weeks[wid]?.projects || inherited),
+            };
+            return { ...s, weeks: { ...s.weeks, [wid]: fn(current) } };
+          });
+        const addToToday = (task) => {
+          const key = dayId(currentDate);
+          setStore((s) => {
+            const day = normalizeDay(s.days[key]);
+            if (day.todos.some((t) => t.text === task.text && t.projectId === task.projectId && !t.done)) {
+              toast?.("이미 오늘의 할 일에 있습니다");
+              return s;
+            }
+            return {
+              ...s,
+              days: {
+                ...s.days,
+                [key]: {
+                  ...day,
+                  todos: [
+                    ...day.todos,
+                    {
+                      id: uid(),
+                      text: task.text,
+                      done: false,
+                      projectId: task.projectId,
+                      priority: task.priority || "normal",
+                      focus: false,
+                      createdAt: Date.now(),
+                      order: nextOrder(day.todos),
+                    },
+                  ],
+                },
+              },
+            };
+          });
+          toast?.("오늘의 할 일에 추가했습니다");
+        };
+        return (
+          <Card title="이번 주 프로젝트·할 일" action={<span className="tiny muted">그룹만 다음 주로</span>}>
+            <div className="sidebar-weekly">
+              <WeeklyTaskBoard week={week} projects={projects} patchWeek={patchWeek} onAddToToday={addToToday} />
+            </div>
+          </Card>
+        );
+      }
+      function FaithProgress({ store, date }) {
+        const monday = startMonday(date),
+          days = Array.from({ length: 7 }, (_, i) => normalizeDay(store.days[dayId(addDays(monday, i))]));
+        const week = { ...emptyWeek(), ...(store.weeks[weekId(date)] || {}) };
+        const goals = { ...emptyWeek().faithGoals, ...week.faithGoals };
+        const qt = days.filter((d) => d.faith.qt).length,
+          read = days.reduce((a, d) => a + (+d.faith.chapters || 0), 0),
+          prayer = days.reduce((a, d) => a + (+d.faith.prayerMinutes || 0), 0);
+        return (
+          <Card title="이번 주 신앙 리듬">
+            <div className="card-pad stack">
+              <div>
+                <div className="row between small">
+                  <span>QT</span>
+                  <b>
+                    {qt}/{goals.qtTarget}일
+                  </b>
+                </div>
+                <Progress value={qt} max={goals.qtTarget} />
+              </div>
+              <div>
+                <div className="row between small">
+                  <span>통독</span>
+                  <b>
+                    {read}/{goals.readingTarget}장
+                  </b>
+                </div>
+                <Progress value={read} max={goals.readingTarget} />
+              </div>
+              <div>
+                <div className="row between small">
+                  <span>기도</span>
+                  <b>
+                    {prayer}/{goals.prayerTarget}분
+                  </b>
+                </div>
+                <Progress value={prayer} max={goals.prayerTarget} />
+              </div>
+            </div>
+          </Card>
+        );
+      }
+      function MiniWeek({ date, setDate, setView }) {
+        const monday = startMonday(date);
+        return (
+          <Card title="이번 주">
+            <div className="card-pad">
+              <div className="week-strip">
+                {Array.from({ length: 7 }, (_, i) => addDays(monday, i)).map((d, i) => {
+                  const active = fmtDate(d) === fmtDate(date),
+                    today = fmtDate(d) === fmtDate(new Date());
+                  return (
+                    <button
+                      key={fmtDate(d)}
+                      className={`day-dot ${active ? "active" : ""} ${today ? "today" : ""}`}
+                      onClick={() => {
+                        setDate(d);
+                        setView("day");
+                      }}
+                    >
+                      <span>{["월", "화", "수", "목", "금", "토", "일"][i]}</span>
+                      <b>{d.getDate()}</b>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </Card>
+        );
+      }
+      function DataTools({ store, setStore, toast }) {
+        const inputRef = useRef(null);
+        const exportData = () => {
+          const blob = new Blob([JSON.stringify(store, null, 2)], { type: "application/json" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = `grace-planner-${fmtDate(new Date())}.json`;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        };
+        const importData = (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              setStore(normalizeStore(JSON.parse(reader.result)));
+              toast("데이터를 가져왔습니다");
+            } catch (err) {
+              toast("올바른 플래너 파일이 아닙니다");
+            }
+          };
+          reader.readAsText(file);
+          e.target.value = "";
+        };
+        return (
+          <div className="row wrap">
+            <Button onClick={exportData}>백업</Button>
+            <Button onClick={() => inputRef.current?.click()}>가져오기</Button>
+            <input ref={inputRef} type="file" accept="application/json" hidden onChange={importData} />
+          </div>
+        );
+      }
+      function QuickAdd({ projects, onAdd }) {
+        const active = projects.filter((p) => !p.archived);
+        const [projectId, setProjectId] = useState(active[0]?.id || DEFAULT_PROJECT_ID),
+          [text, setText] = useState(""),
+          [priority, setPriority] = useState("normal");
+        useEffect(() => {
+          if (!active.some((p) => p.id === projectId)) setProjectId(active[0]?.id || DEFAULT_PROJECT_ID);
+        }, [projects]);
+        const add = () => {
+          if (!text.trim()) return;
+          onAdd({
+            id: uid(),
+            text: text.trim(),
+            done: false,
+            projectId,
+            priority,
+            focus: false,
+            createdAt: Date.now(),
+            order: Date.now(),
+          });
+          setText("");
+        };
+        return (
+          <div className="quick-add">
+            <select className="field" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+              {active.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            <input
+              className="field task-input"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.nativeEvent.isComposing) add();
+              }}
+              placeholder="할 일을 바로 입력하세요"
+            />
+            <select className="field" value={priority} onChange={(e) => setPriority(e.target.value)}>
+              <option value="high">중요</option>
+              <option value="normal">보통</option>
+              <option value="low">낮음</option>
+            </select>
+            <Button className="primary" onClick={add}>
+              추가
+            </Button>
+          </div>
+        );
+      }
+      function TaskBoard({ day, projects, updateDay, onAddToSchedule }) {
+        const tasks = day.todos || [];
+        const [dragTaskId, setDragTaskId] = useState(null);
+        const patch = (id, next) =>
+          updateDay((d) => ({ ...d, todos: d.todos.map((t) => (t.id === id ? { ...t, ...next } : t)) }));
+        const remove = (id) => {
+          if (!window.confirm("이 할 일을 삭제할까요?")) return;
+          updateDay((d) => ({ ...d, todos: d.todos.filter((t) => t.id !== id) }));
+        };
+        const toggleFocus = (t) => {
+          if (!t.focus && tasks.filter((x) => x.focus && !x.done).length >= 3) return;
+          patch(t.id, { focus: !t.focus });
+        };
+        const reorderInProject = (projectId, fromId, toId) => {
+          if (!fromId || fromId === toId) return;
+          updateDay((d) => {
+            const group = sortByOrder(d.todos.filter((t) => t.projectId === projectId));
+            const from = group.findIndex((t) => t.id === fromId);
+            const to = group.findIndex((t) => t.id === toId);
+            if (from < 0 || to < 0) return d;
+            const moved = [...group];
+            const [item] = moved.splice(from, 1);
+            moved.splice(to, 0, item);
+            const reordered = moved.map((t, i) => ({ ...t, order: i + 1 }));
+            const others = d.todos.filter((t) => t.projectId !== projectId);
+            return { ...d, todos: [...others, ...reordered] };
+          });
+          setDragTaskId(null);
+        };
+        return (
+          <div className="stack">
+            {projects
+              .filter((p) => !p.archived && tasks.some((t) => t.projectId === p.id))
+              .map((p) => (
+                <div className="card task-project" key={p.id}>
+                  <div className="project-head">
+                    <div className="row">
+                      <span className="dot" style={{ background: p.color }} />
+                      <strong>{p.name}</strong>
+                    </div>
+                    <span className="tiny muted">
+                      {tasks.filter((t) => t.projectId === p.id && !t.done).length}개 남음
+                    </span>
+                  </div>
+                  <div className="task-list">
+                    {sortByOrder(tasks.filter((t) => t.projectId === p.id)).map((t) => (
+                      <div
+                        className={`task ${t.done ? "done" : ""} ${t.priority === "high" ? "priority-high" : ""} ${
+                          dragTaskId === t.id ? "dragging" : ""
+                        }`}
+                        key={t.id}
+                        draggable
+                        onDragStart={() => setDragTaskId(t.id)}
+                        onDragEnd={() => setDragTaskId(null)}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={() => reorderInProject(p.id, dragTaskId, t.id)}
+                      >
+                        <button type="button" className="task-grip" title="순서 변경" aria-label="순서 변경">
+                          ⠿
+                        </button>
+                        <input
+                          type="checkbox"
+                          aria-label={`${t.text} 완료`}
+                          checked={!!t.done}
+                          onChange={() => patch(t.id, { done: !t.done, focus: t.done ? t.focus : false })}
+                        />
+                        <button
+                          className={`star ${t.focus ? "on" : ""}`}
+                          title="오늘의 핵심으로 지정"
+                          onClick={() => toggleFocus(t)}
+                        >
+                          ★
+                        </button>
+                        <input
+                          className="task-text"
+                          value={t.text}
+                          onChange={(e) => patch(t.id, { text: e.target.value })}
+                        />
+                        <select
+                          className="priority"
+                          aria-label="우선순위"
+                          value={t.priority || "normal"}
+                          onChange={(e) => patch(t.id, { priority: e.target.value })}
+                        >
+                          <option value="high">중요</option>
+                          <option value="normal">보통</option>
+                          <option value="low">낮음</option>
+                        </select>
+                        <button
+                          className="btn soft btn-add-mini"
+                          title="시간표에 추가"
+                          aria-label="시간표에 추가"
+                          onClick={() => onAddToSchedule?.(t, p.color)}
+                        >
+                          +
+                        </button>
+                        <button
+                          className="btn ghost danger"
+                          aria-label={`${t.text} 삭제`}
+                          onClick={() => remove(t.id)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            {tasks.length === 0 && <div className="empty">프로젝트를 선택하고 첫 할 일을 적어보세요.</div>}
+          </div>
+        );
+      }
+      function WeeklyTaskBoard({ week, projects, patchWeek, onAddToToday }) {
+        const activeProjects = projects.filter((project) => !project.archived);
+        const [targetProjectId, setTargetProjectId] = useState(activeProjects[0]?.id || DEFAULT_PROJECT_ID),
+          [newText, setNewText] = useState(""),
+          [draggingId, setDraggingId] = useState(null);
+        const tasks = week.tasks || [];
+        useEffect(() => {
+          if (!activeProjects.some((project) => project.id === targetProjectId)) {
+            setTargetProjectId(activeProjects[0]?.id || DEFAULT_PROJECT_ID);
+          }
+        }, [projects, targetProjectId]);
+        const add = () => {
+          const text = newText.trim();
+          if (!text) return;
+          patchWeek((current) => ({
+            ...current,
+            tasks: [
+              ...(current.tasks || []),
+              {
+                id: uid(),
+                text,
+                done: false,
+                projectId: targetProjectId,
+                priority: "normal",
+                createdAt: Date.now(),
+              },
+            ],
+          }));
+          setNewText("");
+        };
+        const addProject = () => {
+          const project = {
+            id: `project-${uid()}`,
+            name: "새 프로젝트",
+            color: COLORS[activeProjects.length % COLORS.length],
+            archived: false,
+          };
+          patchWeek((current) => ({ ...current, projects: [...(current.projects || []), project] }));
+          setTargetProjectId(project.id);
+        };
+        const patchProject = (id, next) =>
+          patchWeek((current) => ({
+            ...current,
+            projects: (current.projects || []).map((project) =>
+              project.id === id ? { ...project, ...next } : project
+            ),
+          }));
+        const removeProject = (id) => {
+          if (id === DEFAULT_PROJECT_ID) {
+            window.alert("Events·일정 프로젝트는 삭제할 수 없습니다.");
+            return;
+          }
+          if (!window.confirm("이 프로젝트를 이번 주에서 삭제할까요? 할 일은 Events·일정 프로젝트로 이동합니다.")) return;
+          patchWeek((current) => ({
+            ...current,
+            projects: (current.projects || []).filter((project) => project.id !== id),
+            tasks: (current.tasks || []).map((task) =>
+              task.projectId === id ? { ...task, projectId: DEFAULT_PROJECT_ID } : task
+            ),
+          }));
+          setTargetProjectId(DEFAULT_PROJECT_ID);
+        };
+        const patchTask = (id, next) =>
+          patchWeek((current) => ({
+            ...current,
+            tasks: (current.tasks || []).map((task) => (task.id === id ? { ...task, ...next } : task)),
+          }));
+        const removeTask = (id) => {
+          if (!window.confirm("이 주간 할 일을 삭제할까요?")) return;
+          patchWeek((current) => ({
+            ...current,
+            tasks: (current.tasks || []).filter((task) => task.id !== id),
+          }));
+        };
+        const moveTask = (taskId, projectId) => {
+          patchTask(taskId, { projectId });
+          setDraggingId(null);
+        };
+        return (
+          <div className="weekly-board">
+            <div className="weekly-toolbar">
+              <select
+                className="field"
+                value={targetProjectId}
+                onChange={(event) => setTargetProjectId(event.target.value)}
+              >
+                {activeProjects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+              <input
+                className="field weekly-input"
+                value={newText}
+                onChange={(event) => setNewText(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.nativeEvent.isComposing) add();
+                }}
+                placeholder="할 일 추가"
+              />
+              <div className="weekly-toolbar-actions">
+                <Button className="primary" onClick={add}>
+                  추가
+                </Button>
+                <Button onClick={addProject}>프로젝트 추가</Button>
+              </div>
+            </div>
+            {activeProjects.map((project) => {
+              const projectTasks = tasks.filter((task) => task.projectId === project.id);
+              return (
+                <div className="weekly-project-box" key={project.id} style={{ "--project-color": project.color }}>
+                  <div className="weekly-project-head">
+                    <span className="dot" style={{ background: project.color }} />
+                    <input
+                      type="text"
+                      value={project.name}
+                      onChange={(event) => patchProject(project.id, { name: event.target.value })}
+                      aria-label="프로젝트 이름"
+                    />
+                    <div className="palette" aria-label="프로젝트 색상">
+                      {COLORS.map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          className={color === project.color ? "selected" : ""}
+                          style={{ background: color, "--project-color": project.color }}
+                          onClick={() => patchProject(project.id, { color })}
+                          aria-label={`색상 ${color}`}
+                        />
+                      ))}
+                    </div>
+                    {project.id !== DEFAULT_PROJECT_ID && (
+                      <button className="btn ghost danger" onClick={() => removeProject(project.id)}>
+                        삭제
+                      </button>
+                    )}
+                  </div>
+                  <div
+                    className="weekly-project-body"
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      const taskId = event.dataTransfer.getData("text/plain") || draggingId;
+                      if (taskId) moveTask(taskId, project.id);
+                    }}
+                  >
+                    {projectTasks.map((task) => (
+                      <div
+                        className={`weekly-task-row ${task.done ? "done" : ""} ${
+                          draggingId === task.id ? "dragging" : ""
+                        }`}
+                        key={task.id}
+                        draggable
+                        onDragStart={(event) => {
+                          event.dataTransfer.setData("text/plain", task.id);
+                          setDraggingId(task.id);
+                        }}
+                        onDragEnd={() => setDraggingId(null)}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={!!task.done}
+                          onChange={() => patchTask(task.id, { done: !task.done })}
+                        />
+                        <input
+                          className="task-text"
+                          value={task.text}
+                          onChange={(event) => patchTask(task.id, { text: event.target.value })}
+                          aria-label="주간 할 일 수정"
+                        />
+                        <select
+                          className="priority"
+                          value={task.priority || "normal"}
+                          onChange={(event) => patchTask(task.id, { priority: event.target.value })}
+                        >
+                          <option value="high">중요</option>
+                          <option value="normal">보통</option>
+                          <option value="low">낮음</option>
+                        </select>
+                        <button
+                          className="btn soft btn-add-mini"
+                          title="오늘의 할 일에 추가"
+                          aria-label="오늘의 할 일에 추가"
+                          onClick={() => onAddToToday?.(task)}
+                        >
+                          +
+                        </button>
+                        <button className="btn ghost danger" onClick={() => removeTask(task.id)} aria-label="삭제">
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    {projectTasks.length === 0 && (
+                      <div className="drop-hint">여기에 할 일을 끌어다 놓을 수 있어요.</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      function FocusTimer({ day, updateDay, toast }) {
+        const [minutes, setMinutes] = useState(25),
+          [seconds, setSeconds] = useState(25 * 60),
+          [running, setRunning] = useState(false),
+          [taskId, setTaskId] = useState(""),
+          [customMinutes, setCustomMinutes] = useState(40);
+        const completed = useRef(false);
+        useEffect(() => {
+          if (!running) return;
+          const id = setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000);
+          return () => clearInterval(id);
+        }, [running]);
+        useEffect(() => {
+          if (running && seconds === 0 && !completed.current) {
+            completed.current = true;
+            setRunning(false);
+            updateDay((d) => ({
+              ...d,
+              focusSessions: [...(d.focusSessions || []), { id: uid(), minutes, taskId, completedAt: Date.now() }],
+            }));
+            toast(`${minutes}분 집중을 완료했습니다`);
+          }
+        }, [seconds, running]);
+        const choose = (n) => {
+          setMinutes(n);
+          setSeconds(n * 60);
+          setRunning(false);
+          completed.current = false;
+        };
+        const reset = () => choose(minutes);
+        const applyCustom = () => choose(clamp(Math.round(Number(customMinutes) || 1), 1, 480));
+        const activeTasks = day.todos.filter((t) => !t.done);
+        return (
+          <div className="timer">
+            <div className="row between">
+              <div>
+                <div className="eyebrow" style={{ color: "#bed2c5" }}>
+                  FOCUS TIMER
+                </div>
+                <div className="timer-display">
+                  {pad(Math.floor(seconds / 60))}:{pad(seconds % 60)}
+                </div>
+              </div>
+              <div className="timer-presets row">
+                <button className={minutes === 25 ? "active" : ""} onClick={() => choose(25)}>
+                  25분
+                </button>
+                <button className={minutes === 30 ? "active" : ""} onClick={() => choose(30)}>
+                  30분
+                </button>
+                <button className={minutes === 50 ? "active" : ""} onClick={() => choose(50)}>
+                  50분
+                </button>
+                <button className={minutes === 60 ? "active" : ""} onClick={() => choose(60)}>
+                  1시간
+                </button>
+              </div>
+            </div>
+            <div className="row" style={{ marginBottom: 10 }}>
+              <input
+                className="field grow"
+                type="number"
+                min="1"
+                max="480"
+                value={customMinutes}
+                onChange={(event) => setCustomMinutes(event.target.value)}
+                onKeyDown={(event) => event.key === "Enter" && applyCustom()}
+                aria-label="사용자 지정 집중 시간"
+              />
+              <span className="small">분</span>
+              <Button onClick={applyCustom}>시간 설정</Button>
+            </div>
+            <select className="field" value={taskId} onChange={(e) => setTaskId(e.target.value)}>
+              <option value="">집중할 할 일 선택</option>
+              {activeTasks.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.text}
+                </option>
+              ))}
+            </select>
+            <div className="row" style={{ marginTop: 10 }}>
+              <Button
+                className="primary grow"
+                onClick={() => {
+                  completed.current = false;
+                  setRunning((v) => !v);
+                }}
+              >
+                {running ? "잠시 멈춤" : "집중 시작"}
+              </Button>
+              <Button className="ghost" onClick={reset}>
+                초기화
+              </Button>
+            </div>
+            <div className="tiny" style={{ marginTop: 9, color: "#bfd0c7" }}>
+              오늘 완료 {day.focusSessions.reduce((a, s) => a + (s.minutes || 0), 0)}분
+            </div>
+          </div>
+        );
+      }
+      function FaithDaily({ day, updateDay }) {
+        const faith = day.faith;
+        const patch = (next) => updateDay((d) => ({ ...d, faith: { ...d.faith, ...next } }));
+        return (
+          <Card title="오늘의 신앙 리듬">
+            <div className="card-pad faith-check">
+              <div className="faith-cell">
+                <label>묵상(QT)</label>
+                <div className="big-check">
+                  <input type="checkbox" checked={!!faith.qt} onChange={(e) => patch({ qt: e.target.checked })} />
+                  <span>{faith.qt ? "묵상했어요" : "체크하기"}</span>
+                </div>
+              </div>
+              <div className="faith-cell">
+                <label>통독</label>
+                <div className="row">
+                  <input
+                    className="field"
+                    type="number"
+                    min="0"
+                    value={faith.chapters}
+                    onChange={(e) => patch({ chapters: Math.max(0, +e.target.value) })}
+                  />
+                  <span className="small">장</span>
+                </div>
+              </div>
+              <div className="faith-cell">
+                <label>기도</label>
+                <div className="row">
+                  <input
+                    className="field"
+                    type="number"
+                    min="0"
+                    value={faith.prayerMinutes}
+                    onChange={(e) => patch({ prayerMinutes: Math.max(0, +e.target.value) })}
+                  />
+                  <span className="small">분</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        );
+      }
+      function Devotion({ day, updateDay }) {
+        const d = day.devotion,
+          moods = ["평안", "감사", "기쁨", "지침", "불안", "슬픔"];
+        const patch = (next) => updateDay((day) => ({ ...day, devotion: { ...day.devotion, ...next } }));
+        return (
+          <Card title="오늘의 묵상">
+            <div className="card-pad devotion-grid">
+              <div>
+                <label className="label">본문</label>
+                <input
+                  className="field"
+                  value={d.passage}
+                  onChange={(e) => patch({ passage: e.target.value })}
+                  placeholder="예: 요한복음 15:1-8"
+                />
+              </div>
+              <div>
+                <label className="label">기분</label>
+                <div className="mood-row">
+                  {moods.map((m) => (
+                    <button
+                      key={m}
+                      className={`mood ${d.mood === m ? "active" : ""}`}
+                      onClick={() => patch({ mood: m })}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="wide">
+                <label className="label">말씀</label>
+                <textarea
+                  className="field textarea"
+                  value={d.word}
+                  onChange={(e) => patch({ word: e.target.value })}
+                  placeholder="마음에 머문 말씀을 적어보세요"
+                />
+              </div>
+              <div className="wide">
+                <label className="label">묵상</label>
+                <textarea
+                  className="field textarea"
+                  value={d.meditation}
+                  onChange={(e) => patch({ meditation: e.target.value })}
+                  placeholder="말씀을 통해 깨달은 점과 적용을 기록하세요"
+                />
+              </div>
+              <div className="wide">
+                <label className="label">상황</label>
+                <textarea
+                  className="field textarea"
+                  value={d.situation}
+                  onChange={(e) => patch({ situation: e.target.value })}
+                  placeholder="오늘의 상황, 고민, 하나님께 묻고 싶은 것을 적어보세요"
+                />
+              </div>
+            </div>
+          </Card>
+        );
+      }
+      function Gratitude({ day, updateDay }) {
+        const [text, setText] = useState("");
+        const add = () => {
+          if (!text.trim()) return;
+          updateDay((d) => ({ ...d, gratitude: [...d.gratitude, { id: uid(), text: text.trim() }] }));
+          setText("");
+        };
+        return (
+          <Card title="오늘의 감사">
+            <div className="card-pad stack">
+              <div className="row">
+                <input
+                  className="field grow"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && add()}
+                  placeholder="감사한 일을 기록하세요"
+                />
+                <Button onClick={add}>추가</Button>
+              </div>
+              {day.gratitude.map((g) => (
+                <div className="row small" key={g.id}>
+                  <span style={{ color: "var(--gold)" }}>◆</span>
+                  <span className="grow">{g.text}</span>
+                  <button
+                    className="btn ghost danger"
+                    onClick={() =>
+                      window.confirm("이 감사 기록을 삭제할까요?") &&
+                      updateDay((d) => ({ ...d, gratitude: d.gratitude.filter((x) => x.id !== g.id) }))
+                    }
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          </Card>
+        );
+      }
+      function MemorizationVerse({ date, day, updateDay }) {
+        const verse = verseForDate(date);
+        const memorized = !!day.faith.memorized;
+        const toggle = () =>
+          updateDay((d) => ({ ...d, faith: { ...d.faith, memorized: !d.faith.memorized } }));
+        return (
+          <Card
+            title="오늘의 암송 구절"
+            action={
+              <button
+                type="button"
+                className={`verse-check-btn ${memorized ? "on" : ""}`}
+                onClick={toggle}
+              >
+                <span>{memorized ? "✓" : "○"}</span>
+                {memorized ? "외웠어요" : "암송 체크하기"}
+              </button>
+            }
+          >
+            <div className="card-pad verse-card">
+              <p className="verse-text">{verse.text}</p>
+              <p className="verse-ref">{verse.ref}</p>
+            </div>
+          </Card>
+        );
+      }
+      function PrayerTopic({ day, updateDay }) {
+        return (
+          <Card title="오늘의 기도 제목">
+            <div className="card-pad">
+              <textarea
+                className="field textarea"
+                value={day.prayerTopic || ""}
+                onChange={(e) => updateDay((d) => ({ ...d, prayerTopic: e.target.value }))}
+                placeholder="오늘 특별히 기도하고 싶은 제목을 자유롭게 적어보세요"
+              />
+            </div>
+          </Card>
+        );
+      }
+      function TimeBlocks({
+        date,
+        day,
+        updateDay,
+        toast,
+        dayStartMin,
+        setDayStartMin,
+        scheduleZoom,
+        setScheduleZoom,
+        pendingBlock,
+        onPendingClear,
+      }) {
+        const blocks = (day.blocksPlan || []).map(normalizeBlock);
+        const visibleBlocks = blocks;
+        const dayDuration = 1440;
+        const pxPerMin = PX_PER_MIN * scheduleZoom;
+        const innerHeight = dayDuration * pxPerMin;
+        const startHour = Math.floor(dayStartMin / 60);
+        const wrapRef = useRef(null);
+        const [wrapHeight, setWrapHeight] = useState(680);
+        const [editBlock, setEditBlock] = useState(null);
+        const [isDragging, setIsDragging] = useState(false);
+        const [dragInfo, setDragInfo] = useState(null);
+        const [resizeInfo, setResizeInfo] = useState(null);
+        const [touchActive, setTouchActive] = useState(null);
+        const movedRef = useRef(false);
+        const longPressTimerRef = useRef(null);
+        const touchGestureRef = useRef(null);
+        const updateDayRef = useRef(updateDay);
+        useEffect(() => {
+          updateDayRef.current = updateDay;
+        }, [updateDay]);
+        useEffect(() => {
+          const el = wrapRef.current;
+          if (!el) return;
+          const sync = () => setWrapHeight(el.clientHeight || 680);
+          sync();
+          const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(sync) : null;
+          ro?.observe(el);
+          window.addEventListener("resize", sync);
+          return () => {
+            ro?.disconnect();
+            window.removeEventListener("resize", sync);
+          };
+        }, []);
+        const wrapMin = (min) => ((min - dayStartMin) % 1440 + 1440) % 1440;
+        const minToTop = (min) => wrapMin(min) * pxPerMin;
+        const topToMin = (topPx) => {
+          const rel = clamp(topPx, 0, innerHeight) / pxPerMin;
+          return snap5(((dayStartMin + rel) % 1440 + 1440) % 1440);
+        };
+        const defaultStart = () => {
+          if (fmtDate(date) !== fmtDate(new Date())) return dayStartMin;
+          const nowAbs = new Date().getHours() * 60 + new Date().getMinutes();
+          return snap5(clamp(nowAbs, 0, 1425));
+        };
+        const fitZoom = clamp((wrapHeight - 8) / (dayDuration * PX_PER_MIN), MIN_SCHEDULE_ZOOM, MAX_SCHEDULE_ZOOM);
+        const fitsAll = innerHeight <= wrapHeight + 1;
+        const blockLayout = computeBlockLayout(visibleBlocks);
+        const openModal = (patch = {}) =>
+          setEditBlock({
+            id: patch.id || uid(),
+            title: patch.title || "",
+            startMin: patch.startMin ?? defaultStart(),
+            endMin: patch.endMin ?? Math.min((patch.startMin ?? defaultStart()) + 60, 1440),
+            color: patch.color || COLORS[4],
+            isNew: patch.isNew ?? !patch.id,
+          });
+        useEffect(() => {
+          if (!pendingBlock) return;
+          openModal({ ...pendingBlock, isNew: true });
+          onPendingClear?.();
+        }, [pendingBlock]);
+        const updateBlock = (id, patch) =>
+          updateDayRef.current((d) => ({
+            ...d,
+            blocksPlan: d.blocksPlan.map((b) => (b.id === id ? normalizeBlock({ ...b, ...patch }) : b)),
+          }));
+        const removeBlock = (id) =>
+          updateDayRef.current((d) => ({ ...d, blocksPlan: d.blocksPlan.filter((b) => b.id !== id) }));
+        const saveBlock = (draft) => {
+          if (draft.isNew) {
+            updateDayRef.current((d) => ({
+              ...d,
+              blocksPlan: [
+                ...d.blocksPlan,
+                normalizeBlock({
+                  id: draft.id,
+                  title: draft.title,
+                  startMin: draft.startMin,
+                  endMin: draft.endMin,
+                  color: draft.color,
+                  createdAt: Date.now(),
+                }),
+              ],
+            }));
+          } else {
+            updateDayRef.current((d) => ({
+              ...d,
+              blocksPlan: d.blocksPlan.map((b) =>
+                b.id === draft.id
+                  ? normalizeBlock({
+                      ...b,
+                      title: draft.title,
+                      startMin: draft.startMin,
+                      endMin: draft.endMin,
+                      color: draft.color,
+                    })
+                  : b
+              ),
+            }));
+          }
+          setEditBlock(null);
+        };
+        const handleDoubleClick = (e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const clickMin = topToMin(e.clientY - rect.top);
+          openModal({
+            startMin: clickMin,
+            endMin: Math.min(clickMin + 60, 1440),
+            isNew: true,
+          });
+        };
+        const handleMouseDown = (e, block, action = "move") => {
+          e.preventDefault();
+          e.stopPropagation();
+          movedRef.current = false;
+          if (action === "move") {
+            setIsDragging(true);
+            setDragInfo({ block, startY: e.clientY });
+          } else {
+            setResizeInfo({
+              block,
+              startY: e.clientY,
+              startDuration: Math.max(15, block.endMin - block.startMin),
+            });
+          }
+        };
+        const handleMouseMove = (e) => {
+          if (isDragging && dragInfo) {
+            const delta = e.clientY - dragInfo.startY;
+            if (Math.abs(delta) > 3) movedRef.current = true;
+            const deltaMin = delta / pxPerMin;
+            const duration = dragInfo.block.endMin - dragInfo.block.startMin;
+            let newStart = clamp(snap5(dragInfo.block.startMin + deltaMin), 0, 1440 - 5);
+            let newEnd = clamp(newStart + duration, newStart + 5, 1440);
+            if (newEnd - newStart < duration) newStart = clamp(snap5(newEnd - duration), 0, newEnd - 5);
+            updateBlock(dragInfo.block.id, { startMin: newStart, endMin: newEnd });
+          } else if (resizeInfo) {
+            const delta = e.clientY - resizeInfo.startY;
+            if (Math.abs(delta) > 3) movedRef.current = true;
+            const deltaMin = delta / pxPerMin;
+            const newDuration = Math.max(5, resizeInfo.startDuration + deltaMin);
+            const newEnd = clamp(snap5(resizeInfo.block.startMin + newDuration), resizeInfo.block.startMin + 5, 1440);
+            updateBlock(resizeInfo.block.id, { endMin: newEnd });
+          }
+        };
+        const handleMouseUp = () => {
+          setIsDragging(false);
+          setDragInfo(null);
+          setResizeInfo(null);
+        };
+        const clearLongPressTimer = () => {
+          if (!longPressTimerRef.current) return;
+          window.clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        };
+        const finishTouchGesture = () => {
+          clearLongPressTimer();
+          touchGestureRef.current = null;
+          setTouchActive(null);
+        };
+        const handleTouchStart = (e, block, action = "move") => {
+          if (e.touches.length !== 1) return;
+          e.stopPropagation();
+          clearLongPressTimer();
+          movedRef.current = false;
+          const touch = e.touches[0];
+          touchGestureRef.current = {
+            block,
+            action,
+            touchId: touch.identifier,
+            startX: touch.clientX,
+            startY: touch.clientY,
+            startDuration: Math.max(15, block.endMin - block.startMin),
+            active: false,
+          };
+          longPressTimerRef.current = window.setTimeout(() => {
+            longPressTimerRef.current = null;
+            const gesture = touchGestureRef.current;
+            if (!gesture) return;
+            gesture.active = true;
+            movedRef.current = true;
+            setTouchActive({ id: block.id, action });
+            if (window.navigator?.vibrate) window.navigator.vibrate(25);
+          }, 450);
+        };
+        useEffect(() => {
+          if (!isDragging && !resizeInfo) return;
+          document.addEventListener("mousemove", handleMouseMove);
+          document.addEventListener("mouseup", handleMouseUp);
+          return () => {
+            document.removeEventListener("mousemove", handleMouseMove);
+            document.removeEventListener("mouseup", handleMouseUp);
+          };
+        }, [isDragging, resizeInfo, dragInfo, dayStartMin, pxPerMin]);
+        useEffect(() => {
+          const findTouch = (touches, id) => Array.from(touches).find((touch) => touch.identifier === id);
+          const handleTouchMove = (e) => {
+            const gesture = touchGestureRef.current;
+            if (!gesture) return;
+            const touch = findTouch(e.touches, gesture.touchId);
+            if (!touch) return;
+            const deltaX = touch.clientX - gesture.startX;
+            const deltaY = touch.clientY - gesture.startY;
+            if (!gesture.active) {
+              if (Math.hypot(deltaX, deltaY) > 9) finishTouchGesture();
+              return;
+            }
+            if (e.cancelable) e.preventDefault();
+            movedRef.current = true;
+            const deltaMin = deltaY / pxPerMin;
+            if (gesture.action === "move") {
+              const duration = gesture.block.endMin - gesture.block.startMin;
+              let newStart = clamp(snap5(gesture.block.startMin + deltaMin), 0, 1440 - 5);
+              let newEnd = clamp(newStart + duration, newStart + 5, 1440);
+              if (newEnd - newStart < duration) newStart = clamp(snap5(newEnd - duration), 0, newEnd - 5);
+              updateBlock(gesture.block.id, { startMin: newStart, endMin: newEnd });
+            } else {
+              const newDuration = Math.max(5, gesture.startDuration + deltaMin);
+              const newEnd = clamp(
+                snap5(gesture.block.startMin + newDuration),
+                gesture.block.startMin + 5,
+                1440
+              );
+              updateBlock(gesture.block.id, { endMin: newEnd });
+            }
+          };
+          const handleTouchEnd = (e) => {
+            const gesture = touchGestureRef.current;
+            if (!gesture) return;
+            const stillTouching = findTouch(e.touches, gesture.touchId);
+            if (!stillTouching) finishTouchGesture();
+          };
+          document.addEventListener("touchmove", handleTouchMove, { passive: false });
+          document.addEventListener("touchend", handleTouchEnd);
+          document.addEventListener("touchcancel", handleTouchEnd);
+          return () => {
+            document.removeEventListener("touchmove", handleTouchMove);
+            document.removeEventListener("touchend", handleTouchEnd);
+            document.removeEventListener("touchcancel", handleTouchEnd);
+            clearLongPressTimer();
+          };
+        }, [pxPerMin]);
+        const isToday = fmtDate(date) === fmtDate(new Date());
+        const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+        const nowTop = minToTop(nowMin);
+        const startOptions = [0, 300, 360, 420, 480, 540, 600].filter((v) => v < 1320);
+        const zoomPct = Math.round(scheduleZoom * 100);
+        return (
+          <>
+            <Card title="시간 계획">
+              <div className="tb-toolbar">
+                <div className="tb-toolbar-left">
+                  <label htmlFor="day-start">하루 시작</label>
+                  <select
+                    id="day-start"
+                    className="field"
+                    value={dayStartMin}
+                    onChange={(e) => setDayStartMin(+e.target.value)}
+                  >
+                    {startOptions.map((min) => (
+                      <option key={min} value={min}>
+                        {pad(Math.floor(min / 60))}:{pad(min % 60)}부터 24시간
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="tb-toolbar-right">
+                  <div className="tb-zoom">
+                    <Button className="ghost" onClick={() => setScheduleZoom(clamp(scheduleZoom - 0.15, MIN_SCHEDULE_ZOOM, MAX_SCHEDULE_ZOOM))}>
+                      −
+                    </Button>
+                    <input
+                      type="range"
+                      min={MIN_SCHEDULE_ZOOM}
+                      max={MAX_SCHEDULE_ZOOM}
+                      step="0.05"
+                      value={scheduleZoom}
+                      onChange={(e) => setScheduleZoom(+e.target.value)}
+                      aria-label="시간표 확대/축소"
+                    />
+                    <span className="tb-zoom-value">{zoomPct}%</span>
+                    <Button className="ghost" onClick={() => setScheduleZoom(clamp(scheduleZoom + 0.15, MIN_SCHEDULE_ZOOM, MAX_SCHEDULE_ZOOM))}>
+                      +
+                    </Button>
+                    <Button className="soft" onClick={() => setScheduleZoom(+fitZoom.toFixed(2))}>
+                      전체 보기
+                    </Button>
+                  </div>
+                  <Button className="ghost" onClick={() => openModal({ isNew: true })}>
+                    일정 추가
+                  </Button>
+                </div>
+              </div>
+              <div className={`tb-wrap ${fitsAll ? "fit-all" : ""}`} ref={wrapRef}>
+                <div className="tb-layout">
+                  <div className="tb-inner" style={{ height: innerHeight }}>
+                    {Array.from({ length: 24 }, (_, i) => {
+                      const hour = (startHour + i) % 24;
+                      const top = i * 60 * pxPerMin;
+                      return (
+                        <div key={i} className="tb-hour" style={{ top }}>
+                          <span>{pad(hour)}:00</span>
+                        </div>
+                      );
+                    })}
+                    {Array.from({ length: 24 }, (_, i) => {
+                      const top = (i * 60 + 30) * pxPerMin;
+                      return <div key={`half-${i}`} className="tb-hour tb-half" style={{ top }} />;
+                    })}
+                    {visibleBlocks.flatMap((block) => {
+                      const duration = Math.max(0, block.endMin - block.startMin);
+                      const dispStart = wrapMin(block.startMin);
+                      const segments =
+                        dispStart + duration <= dayDuration
+                          ? [{ top: dispStart, height: duration, isEnd: true, isStart: true }]
+                          : [
+                              { top: dispStart, height: dayDuration - dispStart, isEnd: false, isStart: true },
+                              { top: 0, height: duration - (dayDuration - dispStart), isEnd: true, isStart: false },
+                            ];
+                      const layout = blockLayout[block.id] || { col: 0, cols: 1 };
+                      const gap = 4;
+                      const widthPct = 100 / layout.cols;
+                      const leftPct = layout.col * widthPct;
+                      const labelSeg = segments.reduce((a, b) => (b.height > a.height ? b : a));
+                      return segments.map((seg, si) => (
+                        <div
+                          key={`${block.id}-${si}`}
+                          className={`tb-block ${!seg.isStart ? "tb-seg-continued" : ""} ${
+                            !seg.isEnd ? "tb-seg-continues" : ""
+                          } ${touchActive?.id === block.id ? "touch-active" : ""}`}
+                          style={{
+                            top: seg.top * pxPerMin,
+                            height: Math.max(18, seg.height * pxPerMin),
+                            left: `calc(${leftPct}% + ${gap / 2}px)`,
+                            width: `calc(${widthPct}% - ${gap}px)`,
+                            background: block.color || COLORS[4],
+                          }}
+                          onMouseDown={(e) => handleMouseDown(e, block, "move")}
+                          onTouchStart={(e) => handleTouchStart(e, block, "move")}
+                          onContextMenu={(e) => e.preventDefault()}
+                          onClick={() => {
+                            if (movedRef.current) {
+                              movedRef.current = false;
+                              return;
+                            }
+                            openModal({ ...block, isNew: false });
+                          }}
+                        >
+                          {seg === labelSeg && (
+                            <>
+                              <strong>{block.title}</strong>
+                              <small>
+                                {minToTime(block.startMin)} – {minToTime(block.endMin)}
+                              </small>
+                            </>
+                          )}
+                          {seg.isEnd && (
+                            <div
+                              className="tb-resize"
+                              onMouseDown={(e) => handleMouseDown(e, block, "resize")}
+                              onTouchStart={(e) => handleTouchStart(e, block, "resize")}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          )}
+                        </div>
+                      ));
+                    })}
+                    <div className="tb-dbl" onDoubleClick={handleDoubleClick} />
+                    {isToday && (
+                      <div
+                        className="now-line"
+                        style={{ top: nowTop, left: 0, right: 0, position: "absolute", zIndex: 20 }}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="tb-tip">
+                더블클릭으로 일정 추가 · 블록 클릭으로 수정 · 드래그로 이동 · 하단 드래그로 길이 조절 · 모바일은 블록이나
+                하단 손잡이를 길게 누른 뒤 이동
+              </div>
+            </Card>
+            {editBlock && (
+              <BlockModal
+                block={editBlock}
+                onSave={saveBlock}
+                onClose={() => setEditBlock(null)}
+                onDelete={
+                  editBlock.isNew
+                    ? null
+                    : () => {
+                        if (!window.confirm("이 시간 블록을 삭제할까요?")) return;
+                        removeBlock(editBlock.id);
+                        setEditBlock(null);
+                        toast("시간 블록을 삭제했습니다");
+                      }
+                }
+              />
+            )}
+          </>
+        );
+      }
+      function DayView({ date, store, updateDay, setStore, toast }) {
+        const day = normalizeDay(store.days[dayId(date)]);
+        const projects = getWeekProjects(store, date);
+        const focus = day.todos.filter((t) => t.focus && !t.done).slice(0, 3);
+        const dayStartMin = store.settings?.dayStartMin ?? DEFAULT_DAY_START;
+        const scheduleZoom = store.settings?.scheduleZoom ?? DEFAULT_SCHEDULE_ZOOM;
+        const [pendingSchedule, setPendingSchedule] = useState(null);
+        const setDayStartMin = (next) =>
+          setStore((s) => ({
+            ...s,
+            settings: { ...(s.settings || {}), dayStartMin: clamp(next, 0, 1320) },
+          }));
+        const setScheduleZoom = (next) =>
+          setStore((s) => ({
+            ...s,
+            settings: {
+              ...(s.settings || {}),
+              scheduleZoom: clamp(next, MIN_SCHEDULE_ZOOM, MAX_SCHEDULE_ZOOM),
+            },
+          }));
+        const addTodoToSchedule = (todo, projectColor) => {
+          const startMin = findNextSlot(day.blocksPlan, dayStartMin);
+          setPendingSchedule({
+            title: todo.text,
+            startMin,
+            endMin: Math.min(startMin + 60, 1440),
+            color: projectColor || COLORS[4],
+          });
+          toast("시간표에 추가할 일정을 확인해주세요");
+        };
+        return (
+          <div className="stack">
+            <div className="hero">
+              <div>
+                <div className="eyebrow">TODAY</div>
+                <h1 className="page-title">{dateLabel(date)}</h1>
+                <div className="page-sub">오늘 맡겨진 일에 충실하고, 말씀 안에서 천천히 걸어가세요.</div>
+              </div>
+              <div className="hero-verse">“너의 행사를 여호와께 맡기라. 그리하면 네가 경영하는 것이 이루어지리라.”</div>
+            </div>
+            <div className="focus-list">
+              {[0, 1, 2].map((i) => (
+                <div className="focus-item" key={i}>
+                  <span className="focus-num">{i + 1}</span>
+                  <span className={focus[i] ? "small" : "small muted"}>
+                    {focus[i]?.text || "핵심 할 일에서 ★을 눌러주세요"}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="day-overview">
+              <div className="stack">
+                <div className="mobile-projects">
+                  <ProjectManager store={store} setStore={setStore} currentDate={date} toast={toast} />
+                </div>
+                <Card title="오늘의 할 일">
+                  <div className="card-pad">
+                    <QuickAdd
+                      projects={projects}
+                      onAdd={(task) => updateDay((d) => ({ ...d, todos: [...d.todos, task] }))}
+                    />
+                  </div>
+                </Card>
+                <TaskBoard day={day} projects={projects} updateDay={updateDay} onAddToSchedule={addTodoToSchedule} />
+              </div>
+              <div className="day-side">
+                <TimeBlocks
+                  date={date}
+                  day={day}
+                  updateDay={updateDay}
+                  toast={toast}
+                  dayStartMin={dayStartMin}
+                  setDayStartMin={setDayStartMin}
+                  scheduleZoom={scheduleZoom}
+                  setScheduleZoom={setScheduleZoom}
+                  pendingBlock={pendingSchedule}
+                  onPendingClear={() => setPendingSchedule(null)}
+                />
+              </div>
+            </div>
+            <div className="faith-bottom">
+              <div className="faith-col-stack">
+                <FaithDaily day={day} updateDay={updateDay} />
+                <MemorizationVerse date={date} day={day} updateDay={updateDay} />
+              </div>
+              <Devotion day={day} updateDay={updateDay} />
+              <div className="faith-col-stack">
+                <Gratitude day={day} updateDay={updateDay} />
+                <PrayerTopic day={day} updateDay={updateDay} />
+              </div>
+            </div>
+          </div>
+        );
+      }
+      function WeekView({ date, store, setStore, setDate, setView, toast }) {
+        const monday = startMonday(date),
+          wid = weekId(date),
+          projects = getWeekProjects(store, date),
+          week = { ...emptyWeek(), ...(store.weeks[wid] || {}), projects },
+          goals = { ...emptyWeek().faithGoals, ...week.faithGoals };
+        const days = Array.from({ length: 7 }, (_, i) => ({
+          date: addDays(monday, i),
+          data: normalizeDay(store.days[dayId(addDays(monday, i))]),
+        }));
+        const patchWeek = (fn) =>
+          setStore((s) => {
+            const cur = {
+              ...emptyWeek(),
+              ...(s.weeks[wid] || {}),
+              projects: cloneProjects(s.weeks[wid]?.projects || getWeekProjects(s, date)),
+            };
+            return { ...s, weeks: { ...s.weeks, [wid]: fn(cur) } };
+          });
+        const patchGoal = (next) => patchWeek((w) => ({ ...w, faithGoals: { ...w.faithGoals, ...next } }));
+        const qt = days.filter((x) => x.data.faith.qt).length,
+          read = days.reduce((a, x) => a + (+x.data.faith.chapters || 0), 0),
+          prayer = days.reduce((a, x) => a + (+x.data.faith.prayerMinutes || 0), 0);
+        return (
+          <div className="stack">
+            <div className="hero">
+              <div>
+                <div className="eyebrow">WEEKLY RHYTHM</div>
+                <h1 className="page-title">
+                  {monday.getMonth() + 1}월 {monday.getDate()}일 – {addDays(monday, 6).getMonth() + 1}월{" "}
+                  {addDays(monday, 6).getDate()}일
+                </h1>
+                <div className="page-sub">이번 주의 일과 신앙 리듬을 한눈에 돌아봅니다.</div>
+              </div>
+            </div>
+            <Card title="이번 주 신앙 목표">
+              <div className="card-pad">
+                <div className="goal-grid">
+                  <div className="goal">
+                    <label className="label">QT 목표</label>
+                    <div className="row">
+                      <input
+                        className="field"
+                        type="number"
+                        min="0"
+                        max="7"
+                        value={goals.qtTarget}
+                        onChange={(e) => patchGoal({ qtTarget: +e.target.value })}
+                      />
+                      <span>일</span>
+                    </div>
+                    <div className="small">
+                      <b>{qt}</b>일 실천
+                    </div>
+                    <Progress value={qt} max={goals.qtTarget} />
+                  </div>
+                  <div className="goal">
+                    <label className="label">통독 목표</label>
+                    <div className="row">
+                      <input
+                        className="field"
+                        type="number"
+                        min="0"
+                        value={goals.readingTarget}
+                        onChange={(e) => patchGoal({ readingTarget: +e.target.value })}
+                      />
+                      <span>장</span>
+                    </div>
+                    <div className="small">
+                      <b>{read}</b>장 읽음
+                    </div>
+                    <Progress value={read} max={goals.readingTarget} />
+                  </div>
+                  <div className="goal">
+                    <label className="label">기도 목표</label>
+                    <div className="row">
+                      <input
+                        className="field"
+                        type="number"
+                        min="0"
+                        value={goals.prayerTarget}
+                        onChange={(e) => patchGoal({ prayerTarget: +e.target.value })}
+                      />
+                      <span>분</span>
+                    </div>
+                    <div className="small">
+                      <b>{prayer}</b>분 기도
+                    </div>
+                    <Progress value={prayer} max={goals.prayerTarget} />
+                  </div>
+                </div>
+                <div className="spacer" />
+                <label className="label">이번 주 마음에 품을 목표</label>
+                <input
+                  className="field"
+                  value={goals.note || ""}
+                  onChange={(e) => patchGoal({ note: e.target.value })}
+                  placeholder="예: 아침마다 시편 한 편으로 하루 시작하기"
+                />
+              </div>
+            </Card>
+            <Card title="요일별 체크">
+              <div className="card-pad week-days">
+                {days.map(({ date: d, data }) => (
+                  <button
+                    key={fmtDate(d)}
+                    className={`week-day ${fmtDate(d) === fmtDate(new Date()) ? "today" : ""}`}
+                    onClick={() => {
+                      setDate(d);
+                      setView("day");
+                    }}
+                  >
+                    <strong>
+                      {["월", "화", "수", "목", "금", "토", "일"][(d.getDay() + 6) % 7]} · {d.getDate()}일
+                    </strong>
+                    <p>{data.faith.qt ? "✓ QT 완료" : "○ QT"}</p>
+                    <p>
+                      통독 {data.faith.chapters || 0}장 · 기도 {data.faith.prayerMinutes || 0}분
+                    </p>
+                    <p>{data.devotion.passage || "묵상 본문 없음"}</p>
+                  </button>
+                ))}
+              </div>
+            </Card>
+            <div className="mobile-projects">
+              <ProjectManager store={store} setStore={setStore} currentDate={date} toast={toast} />
+            </div>
+            <div className="grid grid-2">
+              <Card title="주간 기도 제목">
+                <div className="card-pad digest">
+                  {days
+                    .filter((x) => x.data.prayerTopic?.trim())
+                    .map(({ date: d, data }) => (
+                      <div className="digest-item" key={fmtDate(d)}>
+                        <h4>{dateLabel(d)}</h4>
+                        <p style={{ whiteSpace: "pre-wrap" }}>{data.prayerTopic}</p>
+                      </div>
+                    ))}
+                  {!days.some((x) => x.data.prayerTopic?.trim()) && (
+                    <div className="empty">이번 주 기도 제목 기록이 아직 없습니다.</div>
+                  )}
+                </div>
+              </Card>
+              <Card title="주간 감사 모아보기">
+                <div className="card-pad digest">
+                  {days
+                    .filter((x) => x.data.gratitude.length > 0)
+                    .map(({ date: d, data }) => (
+                      <div className="digest-item" key={fmtDate(d)}>
+                        <h4>{dateLabel(d)}</h4>
+                        {data.gratitude.map((g) => (
+                          <p key={g.id}>◆ {g.text}</p>
+                        ))}
+                      </div>
+                    ))}
+                  {!days.some((x) => x.data.gratitude.length > 0) && (
+                    <div className="empty">이번 주 감사 기록이 아직 없습니다.</div>
+                  )}
+                </div>
+              </Card>
+              <Card title="주간 묵상 모아보기">
+                <div className="card-pad digest">
+                  {days
+                    .filter(
+                      (x) =>
+                        x.data.devotion.passage ||
+                        x.data.devotion.word ||
+                        x.data.devotion.meditation ||
+                        x.data.devotion.situation
+                    )
+                    .map(({ date: d, data }) => (
+                      <div className="digest-item" key={fmtDate(d)}>
+                        <h4>
+                          {dateLabel(d)} {data.devotion.mood && `· ${data.devotion.mood}`}
+                        </h4>
+                        <p>
+                          <b>본문</b> {data.devotion.passage || "—"}
+                        </p>
+                        <p>
+                          <b>말씀</b> {data.devotion.word || "—"}
+                        </p>
+                        <p>
+                          <b>묵상</b> {data.devotion.meditation || "—"}
+                        </p>
+                        <p>
+                          <b>상황</b> {data.devotion.situation || "—"}
+                        </p>
+                      </div>
+                    ))}
+                  {!days.some(
+                    (x) =>
+                      x.data.devotion.passage ||
+                      x.data.devotion.word ||
+                      x.data.devotion.meditation ||
+                      x.data.devotion.situation
+                  ) && <div className="empty">이번 주 묵상 기록이 아직 없습니다.</div>}
+                </div>
+              </Card>
+              <Card title="주간 회고">
+                <div className="card-pad stack">
+                  <div>
+                    <label className="label">감사와 열매</label>
+                    <textarea
+                      className="field textarea"
+                      value={week.review?.wins || ""}
+                      onChange={(e) => patchWeek((w) => ({ ...w, review: { ...w.review, wins: e.target.value } }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">돌아볼 점</label>
+                    <textarea
+                      className="field textarea"
+                      value={week.review?.reflection || ""}
+                      onChange={(e) =>
+                        patchWeek((w) => ({ ...w, review: { ...w.review, reflection: e.target.value } }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="label">다음 주 적용</label>
+                    <textarea
+                      className="field textarea"
+                      value={week.review?.next || ""}
+                      onChange={(e) => patchWeek((w) => ({ ...w, review: { ...w.review, next: e.target.value } }))}
+                    />
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        );
+      }
+      function MonthCalendarZoom({ children }) {
+        const outerRef = useRef(null);
+        const [userScale, setUserScale] = useState(1);
+        const pinchRef = useRef(null);
+        const baseFit = 0.55;
+        const scale = clamp(baseFit * userScale, 0.35, 2.2);
+        const onTouchStart = (e) => {
+          if (e.touches.length === 2) {
+            const [a, b] = e.touches;
+            pinchRef.current = {
+              dist: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+              userScale,
+            };
+          }
+        };
+        const onTouchMove = (e) => {
+          const g = pinchRef.current;
+          if (!g || e.touches.length !== 2) return;
+          if (e.cancelable) e.preventDefault();
+          const [a, b] = e.touches;
+          const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+          setUserScale(clamp(g.userScale * (dist / g.dist), 0.6, 4));
+        };
+        const onTouchEnd = (e) => {
+          if (e.touches.length < 2) pinchRef.current = null;
+        };
+        return (
+          <div>
+            <div className="month-zoom-toolbar">
+              <Button className="ghost" onClick={() => setUserScale((v) => clamp(v - 0.15, 0.6, 4))}>
+                −
+              </Button>
+              <span className="tb-zoom-value">{Math.round(scale * 100)}%</span>
+              <Button className="ghost" onClick={() => setUserScale((v) => clamp(v + 0.15, 0.6, 4))}>
+                +
+              </Button>
+              <Button className="soft" onClick={() => setUserScale(1)}>
+                맞춤
+              </Button>
+            </div>
+            <div
+              ref={outerRef}
+              className="month-zoom-wrap"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
+              <div style={{ width: 700 * scale, height: (6 * 100 + 34) * scale }}>
+                <div className="month-zoom-inner" style={{ transform: `scale(${scale})` }}>
+                  {children}
+                </div>
+              </div>
+            </div>
+            <div className="tiny muted" style={{ textAlign: "center", marginTop: 6 }}>
+              두 손가락으로 확대·축소할 수 있어요
+            </div>
+          </div>
+        );
+      }
+      function MonthView({ date, store, setDate, setView }) {
+        const [cursor, setCursor] = useState(new Date(date.getFullYear(), date.getMonth(), 1));
+        const compact = useIsCompact();
+        useEffect(
+          () => setCursor(new Date(date.getFullYear(), date.getMonth(), 1)),
+          [date.getFullYear(), date.getMonth()]
+        );
+        const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1),
+          start = addDays(first, -first.getDay()),
+          days = Array.from({ length: 42 }, (_, i) => addDays(start, i));
+        const monthDays = Array.from(
+          { length: new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate() },
+          (_, i) => new Date(cursor.getFullYear(), cursor.getMonth(), i + 1)
+        ).map((d) => ({ date: d, data: normalizeDay(store.days[dayId(d)]) }));
+        const prayerEntries = monthDays.filter((x) => x.data.prayerTopic?.trim());
+        const gratitudeEntries = monthDays.flatMap((x) =>
+          x.data.gratitude.map((g) => ({ date: x.date, g }))
+        );
+        const calendarGrid = (
+          <div className="calendar">
+            {["일", "월", "화", "수", "목", "금", "토"].map((n) => (
+              <div className="cal-name" key={n}>
+                {n}
+              </div>
+            ))}
+            {days.map((d) => {
+              const data = normalizeDay(store.days[dayId(d)]),
+                open = data.todos.filter((t) => !t.done && t.projectId === DEFAULT_PROJECT_ID),
+                badges = dayBadges(data),
+                out = d.getMonth() !== cursor.getMonth();
+              return (
+                <button
+                  key={fmtDate(d)}
+                  className={`cal-day ${out ? "out" : ""} ${fmtDate(d) === fmtDate(new Date()) ? "today" : ""}`}
+                  onClick={() => {
+                    setDate(d);
+                    setView("day");
+                  }}
+                >
+                  <span className="cal-num">{d.getDate()}</span>
+                  {open.slice(0, 2).map((t) => (
+                    <span className="cal-badge" key={t.id}>
+                      {t.text}
+                    </span>
+                  ))}
+                  {open.length > 2 && <span className="tiny muted">+{open.length - 2}개</span>}
+                  {badges.length > 0 && (
+                    <span className="day-badges">
+                      {badges.map((b) => (
+                        <span
+                          key={b.key}
+                          className={`day-badge ${b.text ? "wide" : ""}`}
+                          style={{ background: b.color }}
+                          title={b.title}
+                        >
+                          {b.glyph}
+                          {b.text && <b>{b.text}</b>}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        );
+        return (
+          <div className="stack">
+            <div className="hero">
+              <div>
+                <div className="eyebrow">MONTHLY</div>
+                <h1 className="page-title">
+                  {cursor.getFullYear()}년 {cursor.getMonth() + 1}월
+                </h1>
+                <div className="page-sub">일정뿐 아니라 묵상과 기도 리듬도 함께 봅니다.</div>
+              </div>
+              <div className="date-nav">
+                <Button onClick={() => setDate(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}>‹</Button>
+                <Button onClick={() => setDate(new Date())}>이번 달</Button>
+                <Button onClick={() => setDate(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}>›</Button>
+              </div>
+            </div>
+            <div className="badge-legend">
+              <span className="tiny muted">뱃지 안내</span>
+              {BADGE_LEGEND.map((b) => (
+                <span className="badge-legend-item" key={b.key}>
+                  <span className="day-badge" style={{ background: b.color }}>
+                    {b.glyph}
+                  </span>
+                  <span className="tiny muted">{b.label}</span>
+                </span>
+              ))}
+            </div>
+            <Card>
+              <div className="calendar-scroll">
+                {compact ? <MonthCalendarZoom>{calendarGrid}</MonthCalendarZoom> : calendarGrid}
+              </div>
+            </Card>
+            <div className="grid grid-2">
+              <Card title="이번 달 기도 제목 모아보기">
+                <div className="card-pad month-digest digest">
+                  {prayerEntries.map(({ date: d, data }) => (
+                    <div className="digest-item" key={fmtDate(d)}>
+                      <h4>{dateLabel(d)}</h4>
+                      <p style={{ whiteSpace: "pre-wrap" }}>{data.prayerTopic}</p>
+                    </div>
+                  ))}
+                  {prayerEntries.length === 0 && <div className="empty">이번 달 기도 제목 기록이 아직 없습니다.</div>}
+                </div>
+              </Card>
+              <Card title="이번 달 감사 모아보기">
+                <div className="card-pad month-digest digest">
+                  {gratitudeEntries.map(({ date: d, g }) => (
+                    <div className="digest-item" key={g.id}>
+                      <h4>{dateLabel(d)}</h4>
+                      <p>◆ {g.text}</p>
+                    </div>
+                  ))}
+                  {gratitudeEntries.length === 0 && <div className="empty">이번 달 감사 기록이 아직 없습니다.</div>}
+                </div>
+              </Card>
+            </div>
+          </div>
+        );
+      }
+      const PRESET_PRAYER_TAGS = ["가족", "회사", "교회", "지인"];
+      function PrayerGroup({ group, setStore, toast, onDragStart, onDragEnd }) {
+        const [title, setTitle] = useState(""),
+          [note, setNote] = useState(""),
+          [nameDraft, setNameDraft] = useState(group.name),
+          [tagValue, setTagValue] = useState(""),
+          [showTagAdd, setShowTagAdd] = useState(false);
+        const tagComposingRef = useRef(false);
+        useEffect(() => setNameDraft(group.name), [group.id, group.name]);
+        const tags = group.tags || [];
+        const customTags = tags.filter((t) => !PRESET_PRAYER_TAGS.includes(t));
+        const patchGroup = (fn) =>
+          setStore((s) => ({ ...s, prayerGroups: s.prayerGroups.map((g) => (g.id === group.id ? fn(g) : g)) }));
+        const saveName = () => {
+          const trimmed = nameDraft.trim();
+          if (!trimmed) {
+            setNameDraft(group.name);
+            return;
+          }
+          if (trimmed === group.name) return;
+          setStore((s) => {
+            if (s.prayerGroups.some((g) => g.id !== group.id && g.name === trimmed && g.type === group.type)) {
+              toast?.("같은 이름의 기도 대상이 이미 있습니다");
+              return s;
+            }
+            return {
+              ...s,
+              prayerGroups: s.prayerGroups.map((g) => (g.id === group.id ? { ...g, name: trimmed } : g)),
+            };
+          });
+        };
+        const add = () => {
+          if (!title.trim()) return;
+          patchGroup((g) => ({
+            ...g,
+            items: [
+              ...g.items,
+              { id: uid(), title: title.trim(), note: note.trim(), answered: false, createdAt: Date.now() },
+            ],
+          }));
+          setTitle("");
+          setNote("");
+        };
+        const patchItem = (id, next) =>
+          patchGroup((g) => ({ ...g, items: g.items.map((i) => (i.id === id ? { ...i, ...next } : i)) }));
+        const remove = (id) => {
+          if (!window.confirm("이 기도 제목을 삭제할까요?")) return;
+          patchGroup((g) => ({ ...g, items: g.items.filter((i) => i.id !== id) }));
+        };
+        const addTag = () => {
+          if (tagComposingRef.current) return;
+          const t = tagValue.trim();
+          if (!t || tags.includes(t)) {
+            setTagValue("");
+            return;
+          }
+          patchGroup((g) => ({ ...g, tags: [...(g.tags || []), t] }));
+          setTagValue("");
+          setShowTagAdd(false);
+        };
+        const removeTag = (t) => patchGroup((g) => ({ ...g, tags: (g.tags || []).filter((x) => x !== t) }));
+        const togglePresetTag = (t) =>
+          patchGroup((g) => ({
+            ...g,
+            tags: (g.tags || []).includes(t) ? g.tags.filter((x) => x !== t) : [...(g.tags || []), t],
+          }));
+        const sortedItems = [...group.items].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        return (
+          <Card className={`prayer-card type-${group.type}`}>
+            <div className="card-head prayer-head-row">
+              <button
+                type="button"
+                className="prayer-drag-handle"
+                draggable
+                title="순서 변경"
+                aria-label="순서 변경"
+                onDragStart={onDragStart}
+                onDragEnd={onDragEnd}
+              >
+                ⠿
+              </button>
+              <span className={`prayer-type-badge ${group.type}`}>{group.type === "person" ? "사람" : "단체"}</span>
+              <input
+                className="prayer-name-input"
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                onBlur={saveName}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), e.currentTarget.blur())}
+                aria-label="대상 이름"
+              />
+              <Button
+                className="danger"
+                onClick={() =>
+                  window.confirm(`${group.name}의 기도 제목과 기록을 모두 삭제할까요?`) &&
+                  setStore((s) => ({ ...s, prayerGroups: s.prayerGroups.filter((g) => g.id !== group.id) }))
+                }
+              >
+                삭제
+              </Button>
+            </div>
+            <div className="prayer-tag-pad">
+              <div className="prayer-tag-row">
+                {PRESET_PRAYER_TAGS.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`preset-tag-btn ${tags.includes(t) ? "on" : ""}`}
+                    onClick={() => togglePresetTag(t)}
+                  >
+                    {t}
+                  </button>
+                ))}
+                {customTags.map((t) => (
+                  <span className="tag-chip on" key={t}>
+                    #{t}
+                    <button type="button" onClick={() => removeTag(t)} aria-label={`태그 ${t} 삭제`}>
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <button type="button" className="add-tag-mini-btn" onClick={() => setShowTagAdd((v) => !v)}>
+                  +태그추가
+                </button>
+              </div>
+              {showTagAdd && (
+                <div className="tag-add-row">
+                  <input
+                    className="field"
+                    value={tagValue}
+                    onChange={(e) => setTagValue(e.target.value)}
+                    onCompositionStart={() => (tagComposingRef.current = true)}
+                    onCompositionEnd={() => (tagComposingRef.current = false)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !tagComposingRef.current) {
+                        e.preventDefault();
+                        addTag();
+                      }
+                    }}
+                    placeholder="새 태그 입력 후 Enter"
+                    autoFocus
+                  />
+                  <Button onClick={addTag}>추가</Button>
+                </div>
+              )}
+            </div>
+            {sortedItems.map((item) => (
+              <div className={`prayer-item ${item.answered ? "answered" : ""}`} key={item.id}>
+                <div className="row" style={{ justifyContent: "space-between" }}>
+                  <div className="row" style={{ gap: 8, flex: 1, minWidth: 0 }}>
+                    <input
+                      type="checkbox"
+                      checked={!!item.answered}
+                      onChange={(e) => {
+                        patchItem(item.id, {
+                          answered: e.target.checked,
+                          answeredAt: e.target.checked ? Date.now() : null,
+                        });
+                        if (e.target.checked) toast("응답된 기도로 기록했습니다");
+                      }}
+                    />
+                    <input
+                      className="prayer-title grow"
+                      value={item.title}
+                      onChange={(e) => patchItem(item.id, { title: e.target.value })}
+                    />
+                    {item.answered && <span className="answer-badge">응답</span>}
+                  </div>
+                  <span className="prayer-item-time">{fmtDateTime(item.createdAt)}</span>
+                  <button className="btn ghost danger" onClick={() => remove(item.id)}>
+                    ×
+                  </button>
+                </div>
+                <textarea
+                  className="prayer-note"
+                  value={item.note || ""}
+                  onChange={(e) => patchItem(item.id, { note: e.target.value })}
+                  placeholder="메모"
+                />
+                {item.answeredAt && (
+                  <div className="tiny muted">응답 기록 · {new Date(item.answeredAt).toLocaleDateString("ko-KR")}</div>
+                )}
+              </div>
+            ))}
+            <div className="card-pad prayer-add-form stack">
+              <input
+                className="field"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="기도 제목"
+              />
+              <textarea
+                className="field"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="상황이나 구체적인 내용을 메모하세요"
+              />
+              <Button className="soft" onClick={add}>
+                기도 제목 추가
+              </Button>
+            </div>
+          </Card>
+        );
+      }
+      function PrayerView({ store, setStore, toast }) {
+        const [name, setName] = useState(""),
+          [type, setType] = useState("person"),
+          [filter, setFilter] = useState("all"),
+          [viewMode, setViewMode] = useState("all"),
+          [search, setSearch] = useState(""),
+          [selectedTags, setSelectedTags] = useState([]),
+          [dragId, setDragId] = useState(null);
+        const composingRef = useRef(false);
+        const lastAddRef = useRef(0);
+        const add = () => {
+          if (composingRef.current) return;
+          const trimmed = name.trim();
+          if (!trimmed) return;
+          const now = Date.now();
+          if (now - lastAddRef.current < 400) return;
+          lastAddRef.current = now;
+          setStore((s) => {
+            if (s.prayerGroups.some((g) => g.name === trimmed && g.type === type)) {
+              toast?.("이미 추가된 기도 대상입니다");
+              return s;
+            }
+            return {
+              ...s,
+              prayerGroups: [
+                ...s.prayerGroups,
+                { id: uid(), name: trimmed, type, items: [], tags: [], order: s.prayerGroups.length },
+              ],
+            };
+          });
+          setName("");
+        };
+        const answered = store.prayerGroups.reduce((a, g) => a + g.items.filter((i) => i.answered).length, 0),
+          active = store.prayerGroups.reduce((a, g) => a + g.items.filter((i) => !i.answered).length, 0);
+        const allPrayerTags = Array.from(new Set(store.prayerGroups.flatMap((g) => g.tags || []))).sort();
+        const ordered = sortByOrder(store.prayerGroups);
+        const q = search.trim().toLowerCase();
+        const visible = ordered.filter((g) => {
+          if (viewMode === "person" && g.type !== "person") return false;
+          if (viewMode === "group" && g.type !== "group") return false;
+          if (viewMode === "tag" && selectedTags.length > 0 && !selectedTags.some((t) => (g.tags || []).includes(t)))
+            return false;
+          if (q) {
+            const hay = `${g.name} ${(g.tags || []).join(" ")} ${g.items
+              .map((i) => `${i.title} ${i.note || ""}`)
+              .join(" ")}`.toLowerCase();
+            if (!hay.includes(q)) return false;
+          }
+          return true;
+        });
+        const groups = visible.map((g) => ({
+          ...g,
+          items: g.items.filter((i) => filter === "all" || (filter === "active" ? !i.answered : i.answered)),
+        }));
+        const toggleTag = (t) =>
+          setSelectedTags((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
+        const reorder = (targetGroupId) => {
+          if (!dragId || dragId === targetGroupId) return;
+          setStore((s) => {
+            const list = sortByOrder(s.prayerGroups);
+            const from = list.findIndex((g) => g.id === dragId);
+            const to = list.findIndex((g) => g.id === targetGroupId);
+            if (from < 0 || to < 0) return s;
+            const moved = [...list];
+            const [item] = moved.splice(from, 1);
+            moved.splice(to, 0, item);
+            return { ...s, prayerGroups: moved.map((g, i) => ({ ...g, order: i })) };
+          });
+          setDragId(null);
+        };
+        return (
+          <div className="stack">
+            <div className="hero">
+              <div>
+                <div className="eyebrow">PRAYER JOURNAL</div>
+                <h1 className="page-title">중보기도 노트</h1>
+                <div className="page-sub">사람과 공동체를 품고, 응답의 흔적을 오래 기억하세요.</div>
+              </div>
+              <div className="row">
+                <div className="metric">
+                  <strong>{active}</strong>
+                  <span>기도 중</span>
+                </div>
+                <div className="metric">
+                  <strong>{answered}</strong>
+                  <span>응답됨</span>
+                </div>
+              </div>
+            </div>
+            <Card
+              title="기도 대상 추가"
+              action={
+                <div className="segmented">
+                  {[
+                    ["all", "전체"],
+                    ["active", "기도 중"],
+                    ["answered", "응답"],
+                  ].map(([v, l]) => (
+                    <button key={v} className={filter === v ? "active" : ""} onClick={() => setFilter(v)}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              }
+            >
+              <div className="card-pad row wrap">
+                <select className="field" style={{ width: 120 }} value={type} onChange={(e) => setType(e.target.value)}>
+                  <option value="person">사람</option>
+                  <option value="group">단체</option>
+                </select>
+                <input
+                  className="field grow"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onCompositionStart={() => (composingRef.current = true)}
+                  onCompositionEnd={() => (composingRef.current = false)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !composingRef.current) {
+                      e.preventDefault();
+                      add();
+                    }
+                  }}
+                  placeholder="이름 또는 단체명"
+                />
+                <Button className="primary" onClick={add}>
+                  추가
+                </Button>
+              </div>
+            </Card>
+            <Card title="보기 옵션">
+              <div className="card-pad stack">
+                <div className="segmented">
+                  {[
+                    ["all", "모두"],
+                    ["person", "사람"],
+                    ["group", "단체"],
+                    ["tag", "태그"],
+                  ].map(([v, l]) => (
+                    <button key={v} className={viewMode === v ? "active" : ""} onClick={() => setViewMode(v)}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+                {viewMode === "tag" && (
+                  <div className="prayer-view-filter">
+                    {allPrayerTags.length === 0 ? (
+                      <span className="tiny muted">아직 추가된 태그가 없습니다. 대상에 태그를 추가해보세요.</span>
+                    ) : (
+                      allPrayerTags.map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          className={`tag-chip ${selectedTags.includes(t) ? "on" : ""}`}
+                          onClick={() => toggleTag(t)}
+                        >
+                          #{t}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+                <input
+                  className="field"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="이름, 태그, 기도 내용으로 검색"
+                />
+              </div>
+            </Card>
+            <div className="prayer-grid">
+              {groups.map((g) => (
+                <div
+                  key={g.id}
+                  className={`prayer-drag-item ${dragId === g.id ? "dragging" : ""}`}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => reorder(g.id)}
+                >
+                  <PrayerGroup
+                    group={g}
+                    setStore={setStore}
+                    toast={toast}
+                    onDragStart={() => setDragId(g.id)}
+                    onDragEnd={() => setDragId(null)}
+                  />
+                </div>
+              ))}
+            </div>
+            {groups.length === 0 && <div className="empty">기도할 사람이나 단체를 먼저 추가해보세요.</div>}
+          </div>
+        );
+      }
+      function App() {
+        const [store, setStore] = useState(loadStore),
+          [view, setView] = useState("day"),
+          [date, setDate] = useState(() => {
+            const d = new Date();
+            d.setHours(0, 0, 0, 0);
+            return d;
+          }),
+          [saveState, setSaveState] = useState("저장됨"),
+          [message, setMessage] = useState("");
+        const toast = (text) => {
+          setMessage(text);
+          window.clearTimeout(toast.t);
+          toast.t = window.setTimeout(() => setMessage(""), 2800);
+        };
+        useEffect(() => {
+          setSaveState("저장 중");
+          const id = setTimeout(() => {
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+              setSaveState("저장됨");
+            } catch (e) {
+              setSaveState("저장 실패");
+              toast("저장 공간을 확인해주세요");
+            }
+          }, 250);
+          return () => clearTimeout(id);
+        }, [store]);
+        const updateDay = (fn, target = date) =>
+          setStore((s) => {
+            const key = dayId(target),
+              current = normalizeDay(s.days[key]);
+            return { ...s, days: { ...s.days, [key]: fn(current) } };
+          });
+        const move = (amount) => {
+          if (view === "week") setDate(addDays(date, amount * 7));
+          else if (view === "month") setDate(new Date(date.getFullYear(), date.getMonth() + amount, 1));
+          else setDate(addDays(date, amount));
+        };
+        const navLabel =
+          view === "week"
+            ? `${fmtDate(startMonday(date))} 주간`
+            : view === "month"
+            ? `${date.getFullYear()}년 ${date.getMonth() + 1}월`
+            : dateLabel(date);
+        return (
+          <div className="app">
+            <header className="header">
+              <div className="header-inner">
+                <div className="brand">
+                  <span className="brand-mark">✦</span>
+                  <span>
+                    <strong>은혜의 하루</strong>
+                    <small>Christian Planner</small>
+                  </span>
+                </div>
+                <nav className="nav" aria-label="주요 보기">
+                  {[
+                    ["day", "오늘"],
+                    ["week", "주간 모아보기"],
+                    ["month", "월간"],
+                    ["memo", "메모"],
+                    ["prayer", "기도 노트"],
+                  ].map(([v, l]) => (
+                    <button key={v} className={view === v ? "active" : ""} onClick={() => setView(v)}>
+                      {l}
+                    </button>
+                  ))}
+                </nav>
+                <div className="header-actions">
+                  {view !== "prayer" && view !== "memo" && (
+                    <div className="date-nav">
+                      <button className="icon-btn" aria-label="이전" onClick={() => move(-1)}>
+                        ‹
+                      </button>
+                      <strong>{navLabel}</strong>
+                      <Button onClick={() => setDate(new Date())}>오늘</Button>
+                      <button className="icon-btn" aria-label="다음" onClick={() => move(1)}>
+                        ›
+                      </button>
+                    </div>
+                  )}
+                  <span className="save-state">● {saveState}</span>
+                </div>
+              </div>
+            </header>
+            <div className="shell">
+              <Sidebar store={store} setStore={setStore} date={date} setDate={setDate} setView={setView} toast={toast} />
+              <main className="main">
+                {view === "day" && (
+                  <DayView date={date} store={store} updateDay={updateDay} setStore={setStore} toast={toast} />
+                )}{" "}
+                {view === "week" && (
+                  <WeekView date={date} store={store} setStore={setStore} setDate={setDate} setView={setView} toast={toast} />
+                )}{" "}
+                {view === "month" && <MonthView date={date} store={store} setDate={setDate} setView={setView} />}{" "}
+                {view === "memo" && <MemoView store={store} setStore={setStore} toast={toast} />}{" "}
+                {view === "prayer" && <PrayerView store={store} setStore={setStore} toast={toast} />}
+              </main>
+            </div>
+            <footer className="footer">
+              모든 기록은 이 브라우저에 자동 저장됩니다. 정기적으로 백업 파일을 내려받아 보관해주세요.
+            </footer>
+            {message && (
+              <div className="toast" role="status">
+                {message}
+              </div>
+            )}
+          </div>
+        );
+      }
+      ReactDOM.createRoot(document.getElementById("app")).render(<App />);
+    </script>
+  </body>
+</html>
