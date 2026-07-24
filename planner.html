@@ -257,6 +257,13 @@
       const MEMO_CARD_H = 160;
       const MEMO_CANVAS_W = 1400;
       const MEMO_CANVAS_H = 900;
+      const isImeComposing = (event) =>
+        Boolean(
+          event?.nativeEvent?.isComposing ||
+            event?.isComposing ||
+            event?.nativeEvent?.keyCode === 229 ||
+            event?.keyCode === 229
+        );
       const BIBLE_VERSES = [
   {
     "ref": "고린도후서 5장 17절",
@@ -998,7 +1005,11 @@
                     value={draft.title}
                     onChange={(e) => setDraft({ ...draft, title: e.target.value })}
                     placeholder="일정 제목"
-                    onKeyDown={(e) => e.key === "Enter" && save()}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" || isImeComposing(e)) return;
+                      e.preventDefault();
+                      save();
+                    }}
                   />
                 </div>
                 <div className="grid grid-2">
@@ -1057,7 +1068,11 @@
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="예: 오늘 회의 정리"
-                    onKeyDown={(e) => e.key === "Enter" && save()}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" || isImeComposing(e)) return;
+                      e.preventDefault();
+                      save();
+                    }}
                   />
                 </div>
                 <ColorPalette value={color} onChange={setColor} />
@@ -1205,7 +1220,7 @@
               onCompositionStart={() => (composingRef.current = true)}
               onCompositionEnd={() => (composingRef.current = false)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !composingRef.current) {
+                if (e.key === "Enter" && !composingRef.current && !isImeComposing(e)) {
                   e.preventDefault();
                   submit();
                 }
@@ -1375,7 +1390,7 @@
                   onCompositionStart={() => (composingRef.current = true)}
                   onCompositionEnd={() => (composingRef.current = false)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !composingRef.current) {
+                    if (e.key === "Enter" && !composingRef.current && !isImeComposing(e)) {
                       e.preventDefault();
                       addTag();
                     }
@@ -1918,7 +1933,10 @@
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.nativeEvent.isComposing) add();
+                if (e.key === "Enter" && !isImeComposing(e)) {
+                  e.preventDefault();
+                  add();
+                }
               }}
               placeholder="할 일을 바로 입력하세요"
             />
@@ -2296,7 +2314,10 @@
                 value={newText}
                 onChange={(event) => setNewText(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.nativeEvent.isComposing) add();
+                  if (event.key === "Enter" && !isImeComposing(event)) {
+                    event.preventDefault();
+                    add();
+                  }
                 }}
                 placeholder="할 일 추가"
               />
@@ -2621,7 +2642,11 @@
                   className="field grow"
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && add()}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter" || isImeComposing(e)) return;
+                    e.preventDefault();
+                    add();
+                  }}
                   placeholder="감사한 일을 기록하세요"
                 />
                 <Button onClick={add}>추가</Button>
@@ -3696,7 +3721,11 @@
                 value={nameDraft}
                 onChange={(e) => setNameDraft(e.target.value)}
                 onBlur={saveName}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), e.currentTarget.blur())}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter" || isImeComposing(e)) return;
+                  e.preventDefault();
+                  e.currentTarget.blur();
+                }}
                 aria-label="대상 이름"
               />
               <Button
@@ -3742,7 +3771,7 @@
                     onCompositionStart={() => (tagComposingRef.current = true)}
                     onCompositionEnd={() => (tagComposingRef.current = false)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && !tagComposingRef.current) {
+                      if (e.key === "Enter" && !tagComposingRef.current && !isImeComposing(e)) {
                         e.preventDefault();
                         addTag();
                       }
@@ -3929,7 +3958,7 @@
                   onCompositionStart={() => (composingRef.current = true)}
                   onCompositionEnd={() => (composingRef.current = false)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !composingRef.current) {
+                    if (e.key === "Enter" && !composingRef.current && !isImeComposing(e)) {
                       e.preventDefault();
                       add();
                     }
