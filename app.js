@@ -34,6 +34,7 @@
   let lastFingerprint = "";
   let channel = null;
   let saveTimer = null;
+  let syncGeneration = 0;
 
   const canonicalize = (value) => {
     if (Array.isArray(value)) {
@@ -118,8 +119,10 @@
   }
 
   async function connectSync() {
+    const generation = ++syncGeneration;
     ready = false;
     await disconnectRealtime();
+    if (generation !== syncGeneration) return;
 
     if (!currentSession?.user) {
       setStatus("로그인하면 기기 간 동기화됩니다");
@@ -132,6 +135,7 @@
       .select("store, updated_at")
       .eq("user_id", currentSession.user.id)
       .maybeSingle();
+    if (generation !== syncGeneration) return;
 
     if (error) {
       setStatus("동기화 실패");
@@ -153,10 +157,12 @@
     } else if (localRaw) {
       lastFingerprint = localFingerprint;
       await upload(localRaw);
+      if (generation !== syncGeneration) return;
     } else {
       lastFingerprint = "";
     }
 
+    if (generation !== syncGeneration) return;
     channel = client
       .channel(`planner-${currentSession.user.id}`)
       .on(
