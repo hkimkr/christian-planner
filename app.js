@@ -35,6 +35,9 @@
   let channel = null;
   let saveTimer = null;
   let syncGeneration = 0;
+  let pendingRemoteStore = null;
+  let pendingRemoteFingerprint = "";
+  const recentOwnUploads = new Map();
 
   const canonicalize = (value) => {
     if (Array.isArray(value)) {
@@ -74,8 +77,42 @@
     if (currentSession) label.textContent = message;
   };
 
-  const reloadPlanner = () => {
-    if (frame?.contentWindow) frame.contentWindow.location.reload();
+  const rememberOwnUpload = (fingerprint) => {
+    const now = Date.now();
+    recentOwnUploads.set(fingerprint, now);
+    for (const [key, savedAt] of recentOwnUploads) {
+      if (now - savedAt > 30000 || recentOwnUploads.size > 40) {
+        recentOwnUploads.delete(key);
+      }
+    }
+  };
+
+  const consumeOwnUpload = (fingerprint) => {
+    if (!recentOwnUploads.has(fingerprint)) return false;
+    recentOwnUploads.delete(fingerprint);
+    return true;
+  };
+
+  const postStoreToPlanner = (store) => {
+    if (!frame?.contentWindow || !store) return;
+    frame.contentWindow.postMessage(
+      {
+        type: "grace-planner-cloud-store",
+        store,
+        fingerprint: fingerprintValue(store),
+      },
+      window.location.origin
+    );
+  };
+
+  const applyRemoteStore = (store, message = "") => {
+    const remoteRaw = JSON.stringify(store);
+    localStorage.setItem(STORAGE_KEY, remoteRaw);
+    lastFingerprint = fingerprintValue(store);
+    pendingRemoteStore = store;
+    pendingRemoteFingerprint = lastFingerprint;
+    postStoreToPlanner(store);
+    if (message) setStatus(message);
   };
 
   const openDialog = () => {
@@ -99,6 +136,8 @@
       return;
     }
 
+    const uploadFingerprint = fingerprintValue(store);
+    rememberOwnUpload(uploadFingerprint);
     setStatus("클라우드 저장 중…");
     const { error } = await client.from("planner_data").upsert(
       {
@@ -108,6 +147,7 @@
       },
       { onConflict: "user_id" }
     );
+    if (error) recentOwnUploads.delete(uploadFingerprint);
     setStatus(error ? "동기화 실패" : "클라우드 저장됨");
   }
 
@@ -145,12 +185,9 @@
     const localRaw = localStorage.getItem(STORAGE_KEY) || "";
     const localFingerprint = fingerprintRaw(localRaw);
     if (data?.store) {
-      const remoteRaw = JSON.stringify(data.store);
       const remoteFingerprint = fingerprintValue(data.store);
       if (remoteFingerprint !== localFingerprint) {
-        localStorage.setItem(STORAGE_KEY, remoteRaw);
-        lastFingerprint = remoteFingerprint;
-        reloadPlanner();
+        applyRemoteStore(data.store);
       } else {
         lastFingerprint = localFingerprint;
       }
@@ -175,8 +212,16 @@
         },
         (payload) => {
           if (!payload.new?.store) return;
-          const remoteRaw = JSON.stringify(payload.new.store);
           const remoteFingerprint = fingerprintValue(payload.new.store);
+          if (consumeOwnUpload(remoteFingerprint)) {
+            if (
+              remoteFingerprint ===
+              fingerprintRaw(localStorage.getItem(STORAGE_KEY) || "")
+            ) {
+              lastFingerprint = remoteFingerprint;
+            }
+            return;
+          }
           if (remoteFingerprint === lastFingerprint) return;
 
           const localRaw = localStorage.getItem(STORAGE_KEY) || "";
@@ -185,10 +230,10 @@
             return;
           }
 
-          localStorage.setItem(STORAGE_KEY, remoteRaw);
-          lastFingerprint = remoteFingerprint;
-          setStatus("다른 기기의 변경사항을 받았습니다");
-          reloadPlanner();
+          applyRemoteStore(
+            payload.new.store,
+            "다른 기기의 변경사항을 받았습니다"
+          );
         }
       )
       .subscribe((state) => {
@@ -261,6 +306,30 @@
     await client.auth.signOut();
     setBusy(false);
     closeDialog();
+  });
+
+  window.addEventListener("message", (event) => {
+    if (
+      event.origin !== window.location.origin ||
+      event.source !== frame?.contentWindow
+    ) {
+      return;
+    }
+    if (event.data?.type === "grace-planner-ready") {
+      if (pendingRemoteStore) postStoreToPlanner(pendingRemoteStore);
+      return;
+    }
+    if (
+      event.data?.type === "grace-planner-cloud-store-applied" &&
+      event.data.fingerprint === pendingRemoteFingerprint
+    ) {
+      pendingRemoteStore = null;
+      pendingRemoteFingerprint = "";
+    }
+  });
+
+  frame?.addEventListener("load", () => {
+    if (pendingRemoteStore) postStoreToPlanner(pendingRemoteStore);
   });
 
   window.setInterval(() => {

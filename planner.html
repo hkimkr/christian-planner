@@ -4048,6 +4048,36 @@
           toast.t = window.setTimeout(() => setMessage(""), 2800);
         };
         useEffect(() => {
+          const receiveCloudStore = (event) => {
+            if (
+              event.origin !== window.location.origin ||
+              event.source !== window.parent ||
+              event.data?.type !== "grace-planner-cloud-store" ||
+              !event.data.store
+            ) {
+              return;
+            }
+            setStore(normalizeStore(event.data.store));
+            setSaveState("저장됨");
+            window.parent.postMessage(
+              {
+                type: "grace-planner-cloud-store-applied",
+                fingerprint: event.data.fingerprint || "",
+              },
+              window.location.origin
+            );
+          };
+          window.addEventListener("message", receiveCloudStore);
+          if (window.parent !== window) {
+            window.parent.postMessage(
+              { type: "grace-planner-ready" },
+              window.location.origin
+            );
+          }
+          return () =>
+            window.removeEventListener("message", receiveCloudStore);
+        }, []);
+        useEffect(() => {
           setSaveState("저장 중");
           const id = setTimeout(() => {
             try {
