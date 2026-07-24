@@ -2544,6 +2544,41 @@
           </div>
         );
       }
+      function GoalNumberInput({ value, onValueChange, max }) {
+        const [draft, setDraft] = useState(String(value ?? 0));
+        const focusedRef = useRef(false);
+        useEffect(() => {
+          if (!focusedRef.current) setDraft(String(value ?? 0));
+        }, [value]);
+        const updateDraft = (raw) => {
+          const normalized = raw.replace(/^0+(?=\d)/, "");
+          setDraft(normalized);
+          if (normalized !== "") {
+            onValueChange(Math.max(0, Number(normalized) || 0));
+          }
+        };
+        return (
+          <input
+            className="field"
+            type="number"
+            inputMode="numeric"
+            min="0"
+            max={max}
+            value={draft}
+            onFocus={() => {
+              focusedRef.current = true;
+              if (Number(draft) === 0) setDraft("");
+            }}
+            onChange={(event) => updateDraft(event.target.value)}
+            onBlur={() => {
+              focusedRef.current = false;
+              const next = draft === "" ? 0 : Math.max(0, Number(draft) || 0);
+              setDraft(String(next));
+              onValueChange(next);
+            }}
+          />
+        );
+      }
       function FaithDaily({ day, updateDay }) {
         const faith = day.faith;
         const patch = (next) => updateDay((d) => ({ ...d, faith: { ...d.faith, ...next } }));
@@ -2560,12 +2595,9 @@
               <div className="faith-cell">
                 <label>통독</label>
                 <div className="row">
-                  <input
-                    className="field"
-                    type="number"
-                    min="0"
+                  <GoalNumberInput
                     value={faith.chapters}
-                    onChange={(e) => patch({ chapters: Math.max(0, +e.target.value) })}
+                    onValueChange={(value) => patch({ chapters: value })}
                   />
                   <span className="small">장</span>
                 </div>
@@ -2573,12 +2605,9 @@
               <div className="faith-cell">
                 <label>기도</label>
                 <div className="row">
-                  <input
-                    className="field"
-                    type="number"
-                    min="0"
+                  <GoalNumberInput
                     value={faith.prayerMinutes}
-                    onChange={(e) => patch({ prayerMinutes: Math.max(0, +e.target.value) })}
+                    onValueChange={(value) => patch({ prayerMinutes: value })}
                   />
                   <span className="small">분</span>
                 </div>
@@ -3280,13 +3309,12 @@
                   <div className="goal">
                     <label className="label">QT 목표</label>
                     <div className="row">
-                      <input
-                        className="field"
-                        type="number"
-                        min="0"
-                        max="7"
+                      <GoalNumberInput
                         value={goals.qtTarget}
-                        onChange={(e) => patchGoal({ qtTarget: +e.target.value })}
+                        max={7}
+                        onValueChange={(value) =>
+                          patchGoal({ qtTarget: value })
+                        }
                       />
                       <span>일</span>
                     </div>
@@ -3298,12 +3326,11 @@
                   <div className="goal">
                     <label className="label">통독 목표</label>
                     <div className="row">
-                      <input
-                        className="field"
-                        type="number"
-                        min="0"
+                      <GoalNumberInput
                         value={goals.readingTarget}
-                        onChange={(e) => patchGoal({ readingTarget: +e.target.value })}
+                        onValueChange={(value) =>
+                          patchGoal({ readingTarget: value })
+                        }
                       />
                       <span>장</span>
                     </div>
@@ -3315,12 +3342,11 @@
                   <div className="goal">
                     <label className="label">기도 목표</label>
                     <div className="row">
-                      <input
-                        className="field"
-                        type="number"
-                        min="0"
+                      <GoalNumberInput
                         value={goals.prayerTarget}
-                        onChange={(e) => patchGoal({ prayerTarget: +e.target.value })}
+                        onValueChange={(value) =>
+                          patchGoal({ prayerTarget: value })
+                        }
                       />
                       <span>분</span>
                     </div>
