@@ -31,9 +31,36 @@
 
   let currentSession = null;
   let ready = false;
-  let lastStore = "";
+  let lastFingerprint = "";
   let channel = null;
   let saveTimer = null;
+
+  const canonicalize = (value) => {
+    if (Array.isArray(value)) {
+      return value.map(canonicalize);
+    }
+    if (value && typeof value === "object") {
+      return Object.keys(value)
+        .sort()
+        .reduce((result, key) => {
+          result[key] = canonicalize(value[key]);
+          return result;
+        }, {});
+    }
+    return value;
+  };
+
+  const fingerprintValue = (value) =>
+    JSON.stringify(canonicalize(value));
+
+  const fingerprintRaw = (raw) => {
+    if (!raw) return "";
+    try {
+      return fingerprintValue(JSON.parse(raw));
+    } catch {
+      return raw;
+    }
+  };
 
   const setBusy = (busy) => {
     signInButton.disabled = busy;
@@ -112,16 +139,22 @@
     }
 
     const localRaw = localStorage.getItem(STORAGE_KEY) || "";
+    const localFingerprint = fingerprintRaw(localRaw);
     if (data?.store) {
       const remoteRaw = JSON.stringify(data.store);
-      if (remoteRaw !== localRaw) {
+      const remoteFingerprint = fingerprintValue(data.store);
+      if (remoteFingerprint !== localFingerprint) {
         localStorage.setItem(STORAGE_KEY, remoteRaw);
-        lastStore = remoteRaw;
+        lastFingerprint = remoteFingerprint;
         reloadPlanner();
+      } else {
+        lastFingerprint = localFingerprint;
       }
     } else if (localRaw) {
-      lastStore = localRaw;
+      lastFingerprint = localFingerprint;
       await upload(localRaw);
+    } else {
+      lastFingerprint = "";
     }
 
     channel = client
@@ -137,9 +170,17 @@
         (payload) => {
           if (!payload.new?.store) return;
           const remoteRaw = JSON.stringify(payload.new.store);
-          if (remoteRaw === lastStore) return;
+          const remoteFingerprint = fingerprintValue(payload.new.store);
+          if (remoteFingerprint === lastFingerprint) return;
+
+          const localRaw = localStorage.getItem(STORAGE_KEY) || "";
+          if (remoteFingerprint === fingerprintRaw(localRaw)) {
+            lastFingerprint = remoteFingerprint;
+            return;
+          }
+
           localStorage.setItem(STORAGE_KEY, remoteRaw);
-          lastStore = remoteRaw;
+          lastFingerprint = remoteFingerprint;
           setStatus("다른 기기의 변경사항을 받았습니다");
           reloadPlanner();
         }
@@ -219,8 +260,9 @@
   window.setInterval(() => {
     if (!ready || !currentSession?.user) return;
     const raw = localStorage.getItem(STORAGE_KEY) || "";
-    if (!raw || raw === lastStore) return;
-    lastStore = raw;
+    const currentFingerprint = fingerprintRaw(raw);
+    if (!raw || currentFingerprint === lastFingerprint) return;
+    lastFingerprint = currentFingerprint;
     window.clearTimeout(saveTimer);
     saveTimer = window.setTimeout(() => upload(raw), 700);
   }, 1000);
