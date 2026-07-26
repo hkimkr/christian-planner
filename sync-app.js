@@ -55,6 +55,12 @@
   let lastObservedFingerprint = "";
   let pendingPlannerStore = null;
   let pendingPlannerFingerprint = "";
+  let plannerEditing = false;
+  let reconnectAfterEditing = false;
+  let deferredRemoteRecords = new Map();
+  let deferredRemoteMessage = "";
+  let localCaptureChain = Promise.resolve();
+  let pendingLocalRaw = "";
 
   const canonicalize = (value) => {
     if (Array.isArray(value)) return value.map(canonicalize);
@@ -585,19 +591,13 @@
 
     await deleteOutboxRecords(userId, records);
     localStorage.removeItem(LEGACY_PENDING_KEY);
-    try {
-      const remote = await fetchRemoteRecords(userId);
-      currentRecords = mergeRecordMaps(currentRecords, remote);
-      await putStoredRecords(
-        RECORDS_STORE,
-        userId,
-        [...currentRecords.values()]
-      );
-      applyRecordsToPlanner(currentRecords);
-    } catch {
-      // 업로드는 성공했으므로 다음 연결에서 서버 상태를 다시 확인합니다.
+    const remaining = await getStoredRecords(OUTBOX_STORE, userId);
+    if (remaining.size) {
+      setStatus("변경사항 저장 대기 중");
+      scheduleUpload(80);
+    } else {
+      setStatus("클라우드 저장됨");
     }
-    setStatus("클라우드 저장됨");
     return true;
   }
 
@@ -672,6 +672,52 @@
     });
 
     if (changed.length) await queueRecords(changed);
+  }
+
+  const queueLocalCapture = (raw) => {
+    if (!raw) return localCaptureChain;
+    lastObservedFingerprint = fingerprintRaw(raw);
+    if (!initializedUserId) {
+      pendingLocalRaw = raw;
+      return localCaptureChain;
+    }
+    localCaptureChain = localCaptureChain
+      .catch(() => undefined)
+      .then(() => captureLocalChanges(raw));
+    return localCaptureChain;
+  };
+
+  const deferRemoteRecord = (record, message = "") => {
+    const key = recordKey(record);
+    deferredRemoteRecords.set(
+      key,
+      newerRecord(deferredRemoteRecords.get(key), record)
+    );
+    if (message) deferredRemoteMessage = message;
+  };
+
+  async function flushDeferredRemote(raw = "") {
+    if (raw) await queueLocalCapture(raw);
+    else await localCaptureChain.catch(() => undefined);
+
+    if (deferredRemoteRecords.size && initializedUserId) {
+      currentRecords = mergeRecordMaps(currentRecords, deferredRemoteRecords);
+      await putStoredRecords(
+        RECORDS_STORE,
+        initializedUserId,
+        [...currentRecords.values()]
+      );
+      deferredRemoteRecords = new Map();
+      const message =
+        deferredRemoteMessage || "다른 기기의 변경사항을 받았습니다";
+      deferredRemoteMessage = "";
+      applyRecordsToPlanner(currentRecords, message);
+    }
+
+    if (reconnectAfterEditing && currentSession?.user) {
+      reconnectAfterEditing = false;
+      await connectSync();
+    }
   }
 
   function readLegacyPending() {
@@ -751,11 +797,26 @@
             deleted_at: payload.new.deleted_at,
             client_id: payload.new.client_id,
           };
+          if (incoming.client_id === clientId) return;
+          await localCaptureChain.catch(() => undefined);
           const key = recordKey(incoming);
-          const existing = currentRecords.get(key);
+          const existing = plannerEditing
+            ? newerRecord(
+                currentRecords.get(key),
+                deferredRemoteRecords.get(key)
+              )
+            : currentRecords.get(key);
           if (existing && compareRecords(existing, incoming) >= 0) return;
-          currentRecords.set(key, incoming);
           await putStoredRecords(RECORDS_STORE, userId, [incoming]);
+          if (plannerEditing) {
+            deferRemoteRecord(
+              incoming,
+              "다른 기기의 변경사항을 받았습니다"
+            );
+            setStatus("입력 완료 후 다른 기기 변경사항 병합");
+            return;
+          }
+          currentRecords.set(key, incoming);
           applyRecordsToPlanner(
             currentRecords,
             "다른 기기의 변경사항을 받았습니다"
@@ -789,11 +850,22 @@
     if (reconnectTimer || !currentSession?.user) return;
     reconnectTimer = window.setTimeout(() => {
       reconnectTimer = null;
-      if (currentSession?.user) connectSync();
+      if (!currentSession?.user) return;
+      if (plannerEditing) {
+        reconnectAfterEditing = true;
+        return;
+      }
+      connectSync();
     }, 4000);
   };
 
   async function connectSync() {
+    if (plannerEditing) {
+      reconnectAfterEditing = true;
+      setStatus("입력 완료 후 클라우드 연결 재개");
+      return;
+    }
+    await localCaptureChain.catch(() => undefined);
     const generation = ++syncGeneration;
     initializedUserId = "";
     if (reconnectTimer) {
@@ -880,8 +952,13 @@
       userId,
       [...currentRecords.values()]
     );
-    applyRecordsToPlanner(currentRecords);
     initializedUserId = userId;
+    if (pendingLocalRaw) {
+      const raw = pendingLocalRaw;
+      pendingLocalRaw = "";
+      await queueLocalCapture(raw);
+    }
+    applyRecordsToPlanner(currentRecords);
     if (navigator.onLine === false) {
       setStatus("오프라인 · 이 기기에 안전하게 저장됨");
     } else {
@@ -892,21 +969,31 @@
   }
 
   async function applySession(session) {
+    const previousUserId = currentSession?.user?.id || "";
+    const sameInitializedUser = Boolean(
+      session?.user &&
+        initializedUserId === session.user.id &&
+        previousUserId === session.user.id
+    );
     currentSession = session;
     const loggedIn = Boolean(session?.user);
     dot.classList.toggle("on", loggedIn);
     signedOut.hidden = loggedIn;
     signedIn.hidden = !loggedIn;
     accountEmail.textContent = session?.user?.email || "";
-    label.textContent = loggedIn
-      ? "클라우드 확인 중…"
-      : "클라우드 로그인";
+    if (!loggedIn) label.textContent = "클라우드 로그인";
+    else if (!sameInitializedUser) label.textContent = "클라우드 확인 중…";
     if (!loggedIn) {
       initializedUserId = "";
       currentRecords = new Map();
+      deferredRemoteRecords = new Map();
+      deferredRemoteMessage = "";
+      reconnectAfterEditing = false;
+      pendingLocalRaw = "";
       await disconnectRealtime();
       return;
     }
+    if (sameInitializedUser) return;
     await connectSync();
   }
 
@@ -970,7 +1057,7 @@
     closeDialog();
   });
 
-  window.addEventListener("message", (event) => {
+  window.addEventListener("message", async (event) => {
     if (
       event.origin !== window.location.origin ||
       event.source !== frame?.contentWindow
@@ -979,6 +1066,21 @@
     }
     if (event.data?.type === "grace-planner-ready") {
       if (pendingPlannerStore) postStoreToPlanner(pendingPlannerStore);
+      return;
+    }
+    if (
+      event.data?.type === "grace-planner-local-store" &&
+      typeof event.data.raw === "string"
+    ) {
+      queueLocalCapture(event.data.raw);
+      return;
+    }
+    if (event.data?.type === "grace-planner-editing") {
+      plannerEditing = Boolean(event.data.editing);
+      if (plannerEditing) return;
+      await flushDeferredRemote(
+        typeof event.data.raw === "string" ? event.data.raw : ""
+      );
       return;
     }
     if (
@@ -999,8 +1101,7 @@
     const raw = localStorage.getItem(STORAGE_KEY) || "";
     const fingerprint = fingerprintRaw(raw);
     if (!raw || fingerprint === lastObservedFingerprint) return;
-    lastObservedFingerprint = fingerprint;
-    captureLocalChanges(raw);
+    queueLocalCapture(raw);
   }, 500);
 
   window.addEventListener("offline", () => {
@@ -1008,6 +1109,11 @@
   });
   window.addEventListener("online", () => {
     setStatus("연결됨 · 변경사항 병합 중…");
+    if (plannerEditing) {
+      reconnectAfterEditing = true;
+      setStatus("입력 완료 후 변경사항 병합");
+      return;
+    }
     connectSync();
   });
 
