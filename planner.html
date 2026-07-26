@@ -182,17 +182,13 @@
       .memo-card.touch-dragging{z-index:60;box-shadow:0 0 0 3px rgba(255,255,255,.9),0 10px 26px rgba(30,50,40,.3)}
       .memo-zoom-toolbar{display:flex;align-items:center;gap:6px;margin-bottom:10px;justify-content:flex-end;flex-wrap:wrap}
       .memo-tag-filters{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-      .prayer-card{border-left:5px solid var(--line);position:relative}
-      .prayer-card.type-person{border-left-color:#4285F4}
-      .prayer-card.type-group{border-left-color:#FF9800}
+      .prayer-card{border-left:1px solid var(--line);position:relative}
       .prayer-card.dragging{opacity:.5}
       .prayer-drag-item{position:relative;min-width:0}
       .prayer-drag-item.dragging{opacity:.5}
       .prayer-drag-item.touch-dragging{z-index:30;transform:scale(1.01);box-shadow:0 9px 24px rgba(44,51,64,.16)}
       .prayer-drag-item.touch-drop-target:before{content:"";position:absolute;left:8px;right:8px;top:-3px;height:3px;border-radius:99px;background:var(--brand);z-index:4}
-      .prayer-type-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;color:#fff}
-      .prayer-type-badge.person{background:#4285F4}
-      .prayer-type-badge.group{background:#FF9800}
+      .prayer-type-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;color:#626b75;background:#eceff1;border:1px solid #e1e5e8}
       .prayer-drag-handle{border:0;background:#f0f2f5;color:#9aa3ad;width:26px;height:26px;border-radius:8px;cursor:grab;font-size:13px;display:grid;place-items:center;flex:none;touch-action:pan-y;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
       .prayer-drag-handle:active{cursor:grabbing}
       .prayer-view-filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -241,13 +237,71 @@
         .task-priority-pills{gap:6px}
         .task-priority-pill{flex:1;min-width:68px}
         .prayer-grid,.prayer-drag-item,.prayer-card{width:100%;max-width:100%;min-width:0}
-        .prayer-card .card-head.prayer-head-row{display:grid;grid-template-columns:26px auto minmax(0,1fr) auto;gap:6px;padding:12px}
+        .prayer-card .card-head.prayer-head-row{display:grid;grid-template-columns:26px auto minmax(0,1fr) 30px auto;gap:6px;padding:12px}
         .prayer-head-row>.btn.danger{padding:6px 8px;white-space:nowrap}
         .prayer-item{min-width:0;padding:10px 12px}
         .prayer-item-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 6px;align-items:center}
         .prayer-item-main{min-width:0}
         .prayer-item-time{grid-column:1;grid-row:2;justify-self:end;padding-right:2px}
         .prayer-item-row>.btn{grid-column:2;grid-row:1 / span 2;align-self:center}
+      }
+      .mobile-week-calendar{display:none}
+      .weekly-task-item{border:1px solid #e8ece9;border-radius:13px;background:#fff;overflow:hidden;transition:border-color .16s,background .16s,box-shadow .16s}
+      .weekly-task-item.is-expanded{border-color:#cbd7f2;background:#f9fbff;box-shadow:0 0 0 2px #eef2ff}
+      .weekly-task-row{display:grid;grid-template-columns:20px 22px minmax(0,1fr) 30px 34px;gap:7px;align-items:center;padding:7px 8px}
+      .weekly-task-grip{border:0;background:transparent;color:#a6aeb8;width:20px;padding:0;cursor:grab;font-size:13px;touch-action:pan-y;user-select:none}
+      .weekly-task-summary{border:0;background:transparent;text-align:left;min-width:0;padding:4px 3px;cursor:pointer}
+      .weekly-task-title{display:block;font-size:13px;color:var(--ink);overflow-wrap:anywhere}
+      .weekly-task-detail-preview{display:block;margin-top:3px;font-size:11px;line-height:1.45;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+      .weekly-task-title-input,.prayer-topic-title-input{display:block;width:100%;min-width:0;border:1px solid #d7ded9;border-radius:10px;background:#fff;padding:8px 10px;color:var(--ink);font:inherit;font-size:13px;font-weight:750}
+      .weekly-task-title-input:focus,.prayer-topic-title-input:focus{outline:3px solid #dfe5ff;border-color:#aab9e5}
+      .weekly-task-details{padding:11px 13px 12px 57px;border-top:1px solid #e6eaf3;background:#f8faff;animation:taskDetailsIn .16s ease}
+      .detail-editor-head{display:flex;align-items:center;gap:7px;margin-bottom:9px;color:#657184;font-size:12px;font-weight:850}
+      .detail-editor-head:before{content:"☰";color:#8d98aa;font-size:14px}
+      .detail-editor-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:9px}
+      .detail-complete-btn{border:0;background:#6576d8;color:#fff;border-radius:10px;min-height:34px;padding:7px 15px;font-size:12px;font-weight:850;box-shadow:0 3px 9px rgba(72,91,180,.16)}
+      .detail-complete-btn:hover{background:#5568cb}
+      .task-copy{min-width:0}
+      .task-detail-preview{display:block;margin:3px 5px 0 6px;color:#8a94a3;font-size:11px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+      .sidebar-weekly .weekly-task-row{grid-template-columns:16px 18px minmax(0,1fr) 26px 26px;gap:4px;padding:5px}
+      .sidebar-weekly .weekly-task-details{padding-left:43px}
+      .sidebar-weekly .weekly-task-title-input{padding:6px 7px;font-size:12px}
+      .memo-card-body-input,.memo-list-body-input{display:block;width:100%;border:1px solid transparent;background:transparent;resize:vertical;font-family:inherit;color:inherit}
+      .memo-card-body-input{padding:5px 6px;min-height:88px}
+      .memo-card-body-input:focus,.memo-list-body-input:focus{outline:none;border-color:rgba(61,91,74,.25);background:rgba(255,255,255,.35);border-radius:8px}
+      .memo-list-body-input{min-height:56px;padding:5px 7px;margin-top:4px;font-size:12px;line-height:1.55;color:#5b6470;white-space:pre-wrap}
+      .prayer-card .card-head.prayer-head-row{padding-bottom:10px}
+      .prayer-head-add{width:30px;height:30px;border:1px solid #dce3df;background:#f6f8f7;border-radius:9px;font-size:20px;line-height:1;color:var(--brand);font-weight:700;display:grid;place-items:center}
+      .prayer-topic-list{padding:5px 9px 9px;display:flex;flex-direction:column;gap:5px}
+      .prayer-topic-panel{border:1px solid #e5e9e6;border-radius:12px;background:#fff;overflow:hidden;position:relative;transition:border-color .16s,background .16s,box-shadow .16s}
+      .prayer-topic-panel.is-expanded{border-color:#cbd7f2;background:#f9fbff;box-shadow:0 0 0 2px #eef2ff}
+      .prayer-topic-panel.urgent{border-color:#efb2ad;background:#fff8f7}
+      .prayer-topic-panel.urgent .prayer-topic-title{font-weight:850;color:#973d35}
+      .prayer-topic-panel.answered{background:#f4f8f4}
+      .prayer-topic-panel.answered .prayer-topic-title{text-decoration:line-through;color:var(--muted)}
+      .prayer-topic-panel.dragging,.prayer-topic-panel.touch-dragging{opacity:.55}
+      .prayer-topic-panel.touch-drop-target:before{content:"";position:absolute;left:7px;right:7px;top:-1px;height:3px;border-radius:99px;background:var(--brand);z-index:3}
+      .prayer-topic-summary{display:grid;grid-template-columns:25px 20px minmax(0,1fr) auto 26px;gap:6px;align-items:center;padding:7px 8px}
+      .prayer-topic-grip{border:0;background:transparent;color:#a2a9b0;font-size:14px;width:25px;height:28px;cursor:grab;touch-action:pan-y;-webkit-touch-callout:none;user-select:none}
+      .prayer-topic-copy{border:0;background:transparent;text-align:left;min-width:0;padding:2px 0;cursor:pointer}
+      .prayer-topic-title{display:block;font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+      .prayer-topic-note-preview{display:block;margin-top:2px;color:var(--muted);font-size:11px;line-height:1.42;white-space:pre-wrap;overflow-wrap:anywhere}
+      .urgent-badge{font-size:10px;color:#b5473d;background:#ffe2df;border-radius:99px;padding:3px 7px;font-weight:850;white-space:nowrap}
+      .prayer-topic-details{border-top:1px solid #e6eaf3;padding:11px 13px 12px 59px;background:#f8faff;animation:taskDetailsIn .16s ease}
+      .prayer-topic-details .field{width:100%}
+      .prayer-topic-details textarea{min-height:72px;resize:vertical}
+      .prayer-urgent-toggle{border:1px solid #e0b3ae;background:#fff;color:#a1443b;border-radius:99px;min-height:34px;padding:6px 13px;font-size:12px;font-weight:800}
+      .prayer-urgent-toggle.on{background:#c9554a;color:#fff;border-color:#c9554a}
+      .prayer-add-form{margin:0 9px 9px;border:1px solid #e3e8e5;border-radius:12px;background:#f8faf9;padding:10px}
+      @media(max-width:760px){
+        .mobile-week-calendar{display:block}
+        .mobile-week-calendar .card-head{display:none}
+        .mobile-week-calendar .card-pad{padding:8px}
+        .weekly-task-row{grid-template-columns:18px 22px minmax(0,1fr) 28px 30px;gap:5px;padding:6px}
+        .weekly-task-details{padding-left:48px}
+        .prayer-topic-summary{grid-template-columns:24px 20px minmax(0,1fr) auto 26px;padding:6px}
+        .prayer-item-time{display:none}
+        .prayer-topic-details{padding-left:53px}
       }
     </style>
   </head>
@@ -256,6 +310,8 @@
     <script type="text/babel">
       const { useEffect, useMemo, useRef, useState } = React;
       const STORAGE_KEY = "hamin-planner-v5";
+      const LOCAL_UPDATED_KEY = "hamin-planner-v5-local-updated-at";
+      const PENDING_SYNC_KEY = "hamin-planner-v5-pending-sync";
       const VIEW_STORAGE_KEY = "grace-planner-current-view";
       const VALID_VIEWS = ["day", "week", "month", "memo", "prayer"];
       const loadCurrentView = () => {
@@ -685,7 +741,7 @@
         review: { wins: "", reflection: "", next: "" },
       });
       const emptyStore = () => ({
-        version: 6,
+        version: 8,
         projects: [{ id: DEFAULT_PROJECT_ID, name: "Events·일정", color: COLORS[0], archived: false }],
         days: {},
         weeks: {},
@@ -784,21 +840,39 @@
                 Array.isArray(week?.projects) && week.projects.length
                   ? week.projects.map(renameDefault)
                   : projects.map((project) => ({ ...project })),
+              tasks: (Array.isArray(week?.tasks) ? week.tasks : []).map((task, index) => ({
+                ...task,
+                details: task.details || "",
+                priority: task.priority || "normal",
+                order: task.order ?? index,
+              })),
             },
           ])
         );
         return {
           ...base,
           ...raw,
-          version: 6,
+          version: 8,
           projects,
           days: raw?.days || {},
           weeks,
-          prayerGroups: (Array.isArray(raw?.prayerGroups) ? raw.prayerGroups : []).map((g, i) => ({
-            ...g,
-            tags: Array.isArray(g.tags) ? g.tags : [],
-            order: g.order ?? i,
-          })),
+          prayerGroups: (Array.isArray(raw?.prayerGroups) ? raw.prayerGroups : []).map((g, i) => {
+            const sourceItems = Array.isArray(g.items) ? g.items : [];
+            const orderedItems = sourceItems.some((item) => Number.isFinite(item.order))
+              ? sourceItems
+              : [...sourceItems].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            return {
+              ...g,
+              tags: Array.isArray(g.tags) ? g.tags : [],
+              order: g.order ?? i,
+              items: orderedItems.map((item, index) => ({
+                ...item,
+                note: item.note || "",
+                urgent: !!item.urgent,
+                order: item.order ?? index,
+              })),
+            };
+          }),
           sidebarOrder: (() => {
             const saved = Array.isArray(raw?.sidebarOrder) && raw.sidebarOrder.length
               ? raw.sidebarOrder
@@ -1422,7 +1496,13 @@
                 <Button onClick={addTag}>추가</Button>
               </div>
             )}
-            <div className="memo-card-body">{memo.body}</div>
+            <textarea
+              className="memo-card-body memo-card-body-input memo-card-skip"
+              value={memo.body}
+              onChange={(e) => onChange({ body: e.target.value })}
+              placeholder="메모 내용을 수정하세요"
+              aria-label={`${memo.title} 내용 수정`}
+            />
             <div className="memo-card-palette memo-card-skip">
               {COLORS.map((c) => (
                 <button
@@ -1670,7 +1750,13 @@
                               />
                               <span className="memo-list-date">{fmtDateTime(m.savedAt)}</span>
                             </div>
-                            <div className="memo-list-body">{m.body}</div>
+                            <textarea
+                              className="memo-list-body memo-list-body-input"
+                              value={m.body}
+                              onChange={(e) => patchMemo(m.id, { body: e.target.value })}
+                              placeholder="메모 내용을 수정하세요"
+                              aria-label={`${m.title} 내용 수정`}
+                            />
                             <TagChips
                               tags={m.tags || []}
                               onRemove={(t) => patchMemo(m.id, { tags: (m.tags || []).filter((x) => x !== t) })}
@@ -1796,6 +1882,7 @@
                       done: false,
                       projectId: task.projectId,
                       priority: task.priority || "normal",
+                      details: task.details || "",
                       focus: false,
                       createdAt: Date.now(),
                       order: nextOrder(day.todos),
@@ -2166,12 +2253,17 @@
                           >
                             ★
                           </button>
-                          <input
-                            className="task-text"
-                            value={t.text}
-                            onChange={(event) => patch(t.id, { text: event.target.value })}
-                            aria-label={`${t.text} 내용`}
-                          />
+                          <div className="task-copy">
+                            <input
+                              className="task-text"
+                              value={t.text}
+                              onChange={(event) => patch(t.id, { text: event.target.value })}
+                              aria-label={`${t.text} 내용`}
+                            />
+                            {expandedTaskId !== t.id && !!t.details?.trim() && (
+                              <span className="task-detail-preview">{t.details}</span>
+                            )}
+                          </div>
                           <select
                             className="priority"
                             aria-label="우선순위"
@@ -2242,7 +2334,8 @@
         const activeProjects = projects.filter((project) => !project.archived);
         const [targetProjectId, setTargetProjectId] = useState(activeProjects[0]?.id || DEFAULT_PROJECT_ID),
           [newText, setNewText] = useState(""),
-          [draggingId, setDraggingId] = useState(null);
+          [draggingId, setDraggingId] = useState(null),
+          [expandedTaskId, setExpandedTaskId] = useState(null);
         const tasks = week.tasks || [];
         useEffect(() => {
           if (!activeProjects.some((project) => project.id === targetProjectId)) {
@@ -2262,7 +2355,9 @@
                 done: false,
                 projectId: targetProjectId,
                 priority: "normal",
+                details: "",
                 createdAt: Date.now(),
+                order: (current.tasks || []).length,
               },
             ],
           }));
@@ -2350,7 +2445,7 @@
               </div>
             </div>
             {activeProjects.map((project) => {
-              const projectTasks = tasks.filter((task) => task.projectId === project.id);
+              const projectTasks = sortByOrder(tasks.filter((task) => task.projectId === project.id));
               return (
                 <div className="weekly-project-box" key={project.id} style={{ "--project-color": project.color }}>
                   <div className="weekly-project-head">
@@ -2388,52 +2483,93 @@
                       if (taskId) moveTask(taskId, project.id);
                     }}
                   >
-                    {projectTasks.map((task) => (
-                      <div
-                        className={`weekly-task-row ${task.done ? "done" : ""} ${
-                          draggingId === task.id ? "dragging" : ""
-                        }`}
-                        key={task.id}
-                        draggable
-                        onDragStart={(event) => {
-                          event.dataTransfer.setData("text/plain", task.id);
-                          setDraggingId(task.id);
-                        }}
-                        onDragEnd={() => setDraggingId(null)}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={!!task.done}
-                          onChange={() => patchTask(task.id, { done: !task.done })}
-                        />
-                        <input
-                          className="task-text"
-                          value={task.text}
-                          onChange={(event) => patchTask(task.id, { text: event.target.value })}
-                          aria-label="주간 할 일 수정"
-                        />
-                        <select
-                          className="priority"
-                          value={task.priority || "normal"}
-                          onChange={(event) => patchTask(task.id, { priority: event.target.value })}
+                    {projectTasks.map((task) => {
+                      const expanded = expandedTaskId === task.id;
+                      return (
+                        <div
+                          className={`weekly-task-item ${expanded ? "is-expanded" : ""} ${
+                            draggingId === task.id ? "dragging" : ""
+                          }`}
+                          key={task.id}
+                          draggable={!expanded}
+                          onDragStart={(event) => {
+                            event.dataTransfer.setData("text/plain", task.id);
+                            setDraggingId(task.id);
+                          }}
+                          onDragEnd={() => setDraggingId(null)}
                         >
-                          <option value="high">중요</option>
-                          <option value="normal">보통</option>
-                          <option value="low">낮음</option>
-                        </select>
-                        <button
-                          className="btn soft btn-add-mini"
-                          title="오늘의 할 일에 추가"
-                          aria-label="오늘의 할 일에 추가"
-                          onClick={() => onAddToToday?.(task)}
-                        >
-                          +
-                        </button>
-                        <button className="btn ghost danger" onClick={() => removeTask(task.id)} aria-label="삭제">
-                          ×
-                        </button>
-                      </div>
-                    ))}
+                          <div className={`weekly-task-row ${task.done ? "done" : ""}`}>
+                            <button
+                              type="button"
+                              className="weekly-task-grip"
+                              aria-label="주간 할 일 순서 변경"
+                              title="끌어서 프로젝트 이동"
+                            >
+                              ⠿
+                            </button>
+                            <input
+                              type="checkbox"
+                              checked={!!task.done}
+                              onChange={() => patchTask(task.id, { done: !task.done })}
+                              aria-label={`${task.text} 완료`}
+                            />
+                            {expanded ? (
+                              <input
+                                className="weekly-task-title-input"
+                                value={task.text}
+                                onChange={(event) => patchTask(task.id, { text: event.target.value })}
+                                placeholder="할 일 제목"
+                                aria-label="주간 할 일 제목 수정"
+                                autoFocus
+                              />
+                            ) : (
+                              <button
+                                type="button"
+                                className="weekly-task-summary"
+                                onClick={() => setExpandedTaskId(task.id)}
+                                aria-expanded={false}
+                              >
+                                <span className="weekly-task-title">{task.text || "제목 없는 할 일"}</span>
+                                {!!task.details?.trim() && (
+                                  <span className="weekly-task-detail-preview">{task.details}</span>
+                                )}
+                              </button>
+                            )}
+                            <button
+                              className="btn soft btn-add-mini"
+                              title="오늘의 할 일에 추가"
+                              aria-label="오늘의 할 일에 추가"
+                              onClick={() => onAddToToday?.(task)}
+                            >
+                              +
+                            </button>
+                            <button className="btn ghost danger" onClick={() => removeTask(task.id)} aria-label="삭제">
+                              ×
+                            </button>
+                          </div>
+                          {expanded && (
+                            <div className="weekly-task-details">
+                              <div className="detail-editor-head">세부정보</div>
+                              <textarea
+                                className="task-detail-note"
+                                value={task.details || ""}
+                                onChange={(event) => patchTask(task.id, { details: event.target.value })}
+                                placeholder="이 할 일의 세부 내용을 적어보세요"
+                              />
+                              <div className="detail-editor-actions">
+                                <button
+                                  type="button"
+                                  className="detail-complete-btn"
+                                  onClick={() => setExpandedTaskId(null)}
+                                >
+                                  완료
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                     {projectTasks.length === 0 && (
                       <div className="drop-hint">여기에 할 일을 끌어다 놓을 수 있어요.</div>
                     )}
@@ -3174,7 +3310,7 @@
           </>
         );
       }
-      function DayView({ date, store, updateDay, setStore, toast }) {
+      function DayView({ date, store, updateDay, setStore, setDate, setView, toast }) {
         const day = normalizeDay(store.days[dayId(date)]);
         const projects = getWeekProjects(store, date);
         const focus = day.todos.filter((t) => t.focus && !t.done).slice(0, 3);
@@ -3206,6 +3342,9 @@
         };
         return (
           <div className="stack">
+            <div className="mobile-week-calendar">
+              <MiniWeek date={date} setDate={setDate} setView={setView} />
+            </div>
             <div className="hero">
               <div>
                 <div className="eyebrow">TODAY</div>
@@ -3685,10 +3824,19 @@
       function PrayerGroup({ group, setStore, toast, onDragStart, onDragEnd, onTouchStart }) {
         const [title, setTitle] = useState(""),
           [note, setNote] = useState(""),
+          [newUrgent, setNewUrgent] = useState(false),
+          [showAdd, setShowAdd] = useState(false),
+          [expandedItemId, setExpandedItemId] = useState(null),
+          [dragItemId, setDragItemId] = useState(null),
+          [touchDragItemId, setTouchDragItemId] = useState(null),
+          [touchDropItemId, setTouchDropItemId] = useState(null),
           [nameDraft, setNameDraft] = useState(group.name),
           [tagValue, setTagValue] = useState(""),
           [showTagAdd, setShowTagAdd] = useState(false);
         const tagComposingRef = useRef(false);
+        const itemGestureRef = useRef(null);
+        const itemLongPressRef = useRef(null);
+        const reorderItemRef = useRef(null);
         useEffect(() => setNameDraft(group.name), [group.id, group.name]);
         const tags = group.tags || [];
         const customTags = tags.filter((t) => !PRESET_PRAYER_TAGS.includes(t));
@@ -3714,22 +3862,121 @@
         };
         const add = () => {
           if (!title.trim()) return;
+          const newItem = {
+            id: uid(),
+            title: title.trim(),
+            note: note.trim(),
+            urgent: newUrgent,
+            answered: false,
+            createdAt: Date.now(),
+            order: 0,
+          };
           patchGroup((g) => ({
             ...g,
-            items: [
-              ...g.items,
-              { id: uid(), title: title.trim(), note: note.trim(), answered: false, createdAt: Date.now() },
-            ],
+            items: [newItem, ...sortByOrder(g.items || [])].map((item, index) => ({ ...item, order: index })),
           }));
           setTitle("");
           setNote("");
+          setNewUrgent(false);
+          setShowAdd(false);
+          setExpandedItemId(null);
         };
         const patchItem = (id, next) =>
           patchGroup((g) => ({ ...g, items: g.items.map((i) => (i.id === id ? { ...i, ...next } : i)) }));
         const remove = (id) => {
           if (!window.confirm("이 기도 제목을 삭제할까요?")) return;
           patchGroup((g) => ({ ...g, items: g.items.filter((i) => i.id !== id) }));
+          if (expandedItemId === id) setExpandedItemId(null);
         };
+        const reorderItems = (fromItemId, targetItemId) => {
+          if (!fromItemId || fromItemId === targetItemId) return;
+          patchGroup((g) => {
+            const list = sortByOrder(g.items || []);
+            const from = list.findIndex((item) => item.id === fromItemId);
+            const to = list.findIndex((item) => item.id === targetItemId);
+            if (from < 0 || to < 0) return g;
+            const moved = [...list];
+            const [item] = moved.splice(from, 1);
+            moved.splice(to, 0, item);
+            return { ...g, items: moved.map((current, index) => ({ ...current, order: index })) };
+          });
+          setDragItemId(null);
+        };
+        reorderItemRef.current = reorderItems;
+        const clearItemLongPress = () => {
+          if (!itemLongPressRef.current) return;
+          window.clearTimeout(itemLongPressRef.current);
+          itemLongPressRef.current = null;
+        };
+        const finishItemTouchDrag = () => {
+          clearItemLongPress();
+          itemGestureRef.current = null;
+          setTouchDragItemId(null);
+          setTouchDropItemId(null);
+        };
+        const handleItemTouchStart = (event, itemId) => {
+          if (event.touches.length !== 1) return;
+          event.stopPropagation();
+          clearItemLongPress();
+          const touch = event.touches[0];
+          itemGestureRef.current = {
+            touchId: touch.identifier,
+            itemId,
+            startX: touch.clientX,
+            startY: touch.clientY,
+            active: false,
+            lastTargetId: null,
+          };
+          itemLongPressRef.current = window.setTimeout(() => {
+            itemLongPressRef.current = null;
+            const gesture = itemGestureRef.current;
+            if (!gesture) return;
+            gesture.active = true;
+            setTouchDragItemId(itemId);
+            if (window.navigator?.vibrate) window.navigator.vibrate(25);
+          }, 450);
+        };
+        useEffect(() => {
+          const findTouch = (touches, id) => Array.from(touches).find((touch) => touch.identifier === id);
+          const handleTouchMove = (event) => {
+            const gesture = itemGestureRef.current;
+            if (!gesture) return;
+            const touch = findTouch(event.touches, gesture.touchId);
+            if (!touch) return;
+            const deltaX = touch.clientX - gesture.startX;
+            const deltaY = touch.clientY - gesture.startY;
+            if (!gesture.active) {
+              if (Math.hypot(deltaX, deltaY) > 9) finishItemTouchDrag();
+              return;
+            }
+            if (event.cancelable) event.preventDefault();
+            const target = document
+              .elementFromPoint(touch.clientX, touch.clientY)
+              ?.closest(".prayer-topic-panel");
+            const targetId = target?.dataset.prayerItemId || null;
+            if (targetId && targetId !== gesture.itemId && targetId !== gesture.lastTargetId) {
+              gesture.lastTargetId = targetId;
+              setTouchDropItemId(targetId);
+            }
+          };
+          const handleTouchEnd = (event) => {
+            const gesture = itemGestureRef.current;
+            if (!gesture || findTouch(event.touches, gesture.touchId)) return;
+            if (gesture.active && gesture.lastTargetId) {
+              reorderItemRef.current?.(gesture.itemId, gesture.lastTargetId);
+            }
+            finishItemTouchDrag();
+          };
+          document.addEventListener("touchmove", handleTouchMove, { passive: false });
+          document.addEventListener("touchend", handleTouchEnd);
+          document.addEventListener("touchcancel", handleTouchEnd);
+          return () => {
+            document.removeEventListener("touchmove", handleTouchMove);
+            document.removeEventListener("touchend", handleTouchEnd);
+            document.removeEventListener("touchcancel", handleTouchEnd);
+            clearItemLongPress();
+          };
+        }, []);
         const addTag = () => {
           if (tagComposingRef.current) return;
           const t = tagValue.trim();
@@ -3747,7 +3994,7 @@
             ...g,
             tags: (g.tags || []).includes(t) ? g.tags.filter((x) => x !== t) : [...(g.tags || []), t],
           }));
-        const sortedItems = [...group.items].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        const sortedItems = sortByOrder(group.items || []);
         return (
           <Card className={`prayer-card type-${group.type}`}>
             <div className="card-head prayer-head-row">
@@ -3755,8 +4002,8 @@
                 type="button"
                 className="prayer-drag-handle"
                 draggable
-                title="길게 눌러 순서 변경"
-                aria-label="길게 눌러 순서 변경"
+                title="길게 눌러 대상 순서 변경"
+                aria-label="길게 눌러 대상 순서 변경"
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
                 onTouchStart={onTouchStart}
@@ -3764,7 +4011,7 @@
               >
                 ⠿
               </button>
-              <span className={`prayer-type-badge ${group.type}`}>{group.type === "person" ? "사람" : "단체"}</span>
+              <span className={`prayer-type-badge ${group.type}`}>{group.type === "person" ? "사람" : "공동체"}</span>
               <input
                 className="prayer-name-input"
                 value={nameDraft}
@@ -3777,6 +4024,16 @@
                 }}
                 aria-label="대상 이름"
               />
+              <button
+                type="button"
+                className="prayer-head-add"
+                onClick={() => setShowAdd((current) => !current)}
+                aria-expanded={showAdd}
+                aria-label="기도 제목 추가"
+                title="기도 제목 추가"
+              >
+                {showAdd ? "−" : "+"}
+              </button>
               <Button
                 className="danger"
                 onClick={() =>
@@ -3832,60 +4089,139 @@
                 </div>
               )}
             </div>
-            {sortedItems.map((item) => (
-              <div className={`prayer-item ${item.answered ? "answered" : ""}`} key={item.id}>
-                <div className="row prayer-item-row" style={{ justifyContent: "space-between" }}>
-                  <div className="row prayer-item-main" style={{ gap: 8, flex: 1, minWidth: 0 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!item.answered}
-                      onChange={(e) => {
-                        patchItem(item.id, {
-                          answered: e.target.checked,
-                          answeredAt: e.target.checked ? Date.now() : null,
-                        });
-                        if (e.target.checked) toast("응답된 기도로 기록했습니다");
-                      }}
-                    />
-                    <input
-                      className="prayer-title grow"
-                      value={item.title}
-                      onChange={(e) => patchItem(item.id, { title: e.target.value })}
-                    />
-                    {item.answered && <span className="answer-badge">응답</span>}
-                  </div>
-                  <span className="prayer-item-time">{fmtDateTime(item.createdAt)}</span>
-                  <button className="btn ghost danger" onClick={() => remove(item.id)}>
-                    ×
-                  </button>
-                </div>
-                <textarea
-                  className="prayer-note"
-                  value={item.note || ""}
-                  onChange={(e) => patchItem(item.id, { note: e.target.value })}
-                  placeholder="메모"
+            {showAdd && (
+              <div className="prayer-add-form stack">
+                <input
+                  className="field"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="기도 제목"
+                  autoFocus
                 />
-                {item.answeredAt && (
-                  <div className="tiny muted">응답 기록 · {new Date(item.answeredAt).toLocaleDateString("ko-KR")}</div>
-                )}
+                <textarea
+                  className="field"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="상황이나 구체적인 내용을 메모하세요"
+                />
+                <div className="row between wrap">
+                  <button
+                    type="button"
+                    className={`prayer-urgent-toggle ${newUrgent ? "on" : ""}`}
+                    onClick={() => setNewUrgent((current) => !current)}
+                    aria-pressed={newUrgent}
+                  >
+                    긴급
+                  </button>
+                  <Button className="soft" onClick={add}>
+                    기도 제목 추가
+                  </Button>
+                </div>
               </div>
-            ))}
-            <div className="card-pad prayer-add-form stack">
-              <input
-                className="field"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="기도 제목"
-              />
-              <textarea
-                className="field"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="상황이나 구체적인 내용을 메모하세요"
-              />
-              <Button className="soft" onClick={add}>
-                기도 제목 추가
-              </Button>
+            )}
+            <div className="prayer-topic-list">
+              {sortedItems.map((item) => {
+                const expanded = expandedItemId === item.id;
+                return (
+                  <div
+                    className={`prayer-topic-panel ${expanded ? "is-expanded" : ""} ${
+                      item.answered ? "answered" : ""
+                    } ${
+                      item.urgent ? "urgent" : ""
+                    } ${dragItemId === item.id ? "dragging" : ""} ${
+                      touchDragItemId === item.id ? "touch-dragging" : ""
+                    } ${touchDropItemId === item.id ? "touch-drop-target" : ""}`}
+                    key={item.id}
+                    data-prayer-item-id={item.id}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={() => reorderItems(dragItemId, item.id)}
+                  >
+                    <div className="prayer-topic-summary">
+                      <button
+                        type="button"
+                        className="prayer-topic-grip"
+                        draggable
+                        onDragStart={() => setDragItemId(item.id)}
+                        onDragEnd={() => setDragItemId(null)}
+                        onTouchStart={(event) => handleItemTouchStart(event, item.id)}
+                        onContextMenu={(event) => event.preventDefault()}
+                        aria-label="길게 눌러 기도 제목 순서 변경"
+                      >
+                        ⠿
+                      </button>
+                      <input
+                        type="checkbox"
+                        checked={!!item.answered}
+                        onChange={(e) => {
+                          patchItem(item.id, {
+                            answered: e.target.checked,
+                            answeredAt: e.target.checked ? Date.now() : null,
+                          });
+                          if (e.target.checked) toast("응답된 기도로 기록했습니다");
+                        }}
+                        aria-label={`${item.title} 응답 여부`}
+                      />
+                      {expanded ? (
+                        <input
+                          className="prayer-topic-title-input"
+                          value={item.title}
+                          onChange={(e) => patchItem(item.id, { title: e.target.value })}
+                          placeholder="기도 제목"
+                          aria-label="기도 제목 수정"
+                          autoFocus
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          className="prayer-topic-copy"
+                          onClick={() => setExpandedItemId(item.id)}
+                          aria-expanded={false}
+                        >
+                          <span className="prayer-topic-title">{item.title || "제목 없는 기도"}</span>
+                          {!!item.note?.trim() && <span className="prayer-topic-note-preview">{item.note}</span>}
+                        </button>
+                      )}
+                      {item.urgent ? <span className="urgent-badge">긴급</span> : <span className="prayer-item-time">{fmtDateTime(item.createdAt)}</span>}
+                      <button className="btn ghost danger" onClick={() => remove(item.id)} aria-label="기도 제목 삭제">
+                        ×
+                      </button>
+                    </div>
+                    {expanded && (
+                      <div className="prayer-topic-details stack">
+                        <div className="detail-editor-head">세부정보</div>
+                        <textarea
+                          className="field"
+                          value={item.note || ""}
+                          onChange={(e) => patchItem(item.id, { note: e.target.value })}
+                          placeholder="상황이나 구체적인 내용을 메모하세요"
+                        />
+                        <div className="row between wrap">
+                          <button
+                            type="button"
+                            className={`prayer-urgent-toggle ${item.urgent ? "on" : ""}`}
+                            onClick={() => patchItem(item.id, { urgent: !item.urgent })}
+                            aria-pressed={!!item.urgent}
+                          >
+                            긴급
+                          </button>
+                          {item.answeredAt && (
+                            <span className="tiny muted">
+                              응답 기록 · {new Date(item.answeredAt).toLocaleDateString("ko-KR")}
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            className="detail-complete-btn"
+                            onClick={() => setExpandedItemId(null)}
+                          >
+                            완료
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </Card>
         );
@@ -3935,6 +4271,7 @@
         const visible = ordered.filter((g) => {
           if (viewMode === "person" && g.type !== "person") return false;
           if (viewMode === "group" && g.type !== "group") return false;
+          if (viewMode === "urgent" && !g.items.some((item) => item.urgent)) return false;
           if (viewMode === "tag" && selectedTags.length > 0 && !selectedTags.some((t) => (g.tags || []).includes(t)))
             return false;
           if (q) {
@@ -3947,7 +4284,11 @@
         });
         const groups = visible.map((g) => ({
           ...g,
-          items: g.items.filter((i) => filter === "all" || (filter === "active" ? !i.answered : i.answered)),
+          items: g.items.filter(
+            (i) =>
+              (viewMode !== "urgent" || i.urgent) &&
+              (filter === "all" || (filter === "active" ? !i.answered : i.answered))
+          ),
         }));
         const toggleTag = (t) =>
           setSelectedTags((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
@@ -4090,7 +4431,7 @@
               <div className="card-pad row wrap">
                 <select className="field" style={{ width: 120 }} value={type} onChange={(e) => setType(e.target.value)}>
                   <option value="person">사람</option>
-                  <option value="group">단체</option>
+                  <option value="group">공동체</option>
                 </select>
                 <input
                   className="field grow"
@@ -4104,7 +4445,7 @@
                       add();
                     }
                   }}
-                  placeholder="이름 또는 단체명"
+                  placeholder="이름 또는 공동체명"
                 />
                 <Button className="primary" onClick={add}>
                   추가
@@ -4117,7 +4458,8 @@
                   {[
                     ["all", "모두"],
                     ["person", "사람"],
-                    ["group", "단체"],
+                    ["group", "공동체"],
+                    ["urgent", "긴급 기도"],
                     ["tag", "태그"],
                   ].map(([v, l]) => (
                     <button key={v} className={viewMode === v ? "active" : ""} onClick={() => setViewMode(v)}>
@@ -4175,7 +4517,7 @@
                 </div>
               ))}
             </div>
-            {groups.length === 0 && <div className="empty">기도할 사람이나 단체를 먼저 추가해보세요.</div>}
+            {groups.length === 0 && <div className="empty">기도할 사람이나 공동체를 먼저 추가해보세요.</div>}
           </div>
         );
       }
@@ -4189,6 +4531,7 @@
           }),
           [saveState, setSaveState] = useState("저장됨"),
           [message, setMessage] = useState("");
+        const skipPendingWriteRef = useRef(true);
         const toast = (text) => {
           setMessage(text);
           window.clearTimeout(toast.t);
@@ -4204,6 +4547,7 @@
             ) {
               return;
             }
+            skipPendingWriteRef.current = true;
             setStore(normalizeStore(event.data.store));
             setSaveState("저장됨");
             window.parent.postMessage(
@@ -4232,10 +4576,21 @@
           }
         }, [view]);
         useEffect(() => {
+          if (skipPendingWriteRef.current) {
+            skipPendingWriteRef.current = false;
+            return;
+          }
           setSaveState("저장 중");
           const id = setTimeout(() => {
             try {
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+              const raw = JSON.stringify(store);
+              const updatedAt = Date.now();
+              localStorage.setItem(STORAGE_KEY, raw);
+              localStorage.setItem(LOCAL_UPDATED_KEY, String(Date.now()));
+              localStorage.setItem(
+                PENDING_SYNC_KEY,
+                JSON.stringify({ raw, updatedAt })
+              );
               setSaveState("저장됨");
             } catch (e) {
               setSaveState("저장 실패");
@@ -4267,7 +4622,7 @@
               <div className="header-inner">
                 <div className="brand">
                   <span className="brand-mark brand-mark-image">
-                    <img src="./icon.png?v=7-4" alt="" aria-hidden="true" />
+                    <img src="./icon.png?v=8" alt="" aria-hidden="true" />
                   </span>
                   <span>
                     <strong>은혜의 하루</strong>
@@ -4308,7 +4663,15 @@
               <Sidebar store={store} setStore={setStore} date={date} setDate={setDate} setView={setView} toast={toast} />
               <main className="main">
                 {view === "day" && (
-                  <DayView date={date} store={store} updateDay={updateDay} setStore={setStore} toast={toast} />
+                  <DayView
+                    date={date}
+                    store={store}
+                    updateDay={updateDay}
+                    setStore={setStore}
+                    setDate={setDate}
+                    setView={setView}
+                    toast={toast}
+                  />
                 )}{" "}
                 {view === "week" && (
                   <WeekView date={date} store={store} setStore={setStore} setDate={setDate} setView={setView} toast={toast} />
