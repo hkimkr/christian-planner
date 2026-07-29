@@ -20,7 +20,9 @@
       .timer{background:#243f34;color:#fff;padding:18px;border-radius:18px;box-shadow:var(--shadow)}.timer-display{font-size:42px;font-weight:300;letter-spacing:.05em;font-variant-numeric:tabular-nums}.timer .field{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#fff}.timer .field option{color:#222}.timer .btn{border-color:rgba(255,255,255,.18)}.timer .btn.ghost{color:#fff}.timer-presets button{border:0;background:rgba(255,255,255,.09);color:#dfe9e3;border-radius:8px;padding:5px 8px;font-size:11px}.timer-presets button.active{background:#fff;color:var(--brand)}
       .faith-check{display:grid;grid-template-columns:1fr;gap:10px}.faith-cell{padding:13px;border:1px solid var(--line);border-radius:13px;background:#fff}.faith-cell label{font-size:12px;font-weight:800;display:block;margin-bottom:8px}.big-check{display:flex;align-items:center;gap:8px}.big-check input{width:21px;height:21px;accent-color:var(--brand)}.faith-auto-hint{margin-top:7px;color:var(--muted);font-size:11px}
       .prayer-timer{padding:16px 18px}.prayer-timer-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.prayer-timer-mode{display:inline-flex;padding:3px;background:#f0f2f5;border-radius:10px}.prayer-timer-mode button{border:0;background:transparent;border-radius:8px;padding:6px 10px;color:var(--muted);font-size:11px;font-weight:800}.prayer-timer-mode button.active{background:#fff;color:var(--brand);box-shadow:0 2px 7px rgba(44,51,64,.08)}.prayer-timer-display{margin:13px 0 12px;text-align:center;font-size:38px;font-weight:350;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.04em}.prayer-timer-target{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:11px}.prayer-timer-target .field{width:82px;min-height:34px;padding:6px 9px;text-align:center}.prayer-timer-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.prayer-timer-actions .btn{min-height:36px}.prayer-timer-note{margin-top:9px;text-align:center;color:var(--muted);font-size:10px}
-      .devotion-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.devotion-grid .wide{grid-column:1/-1}.mood-row{display:flex;gap:6px;flex-wrap:wrap}.mood{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 10px;font-size:12px}.mood.active{background:var(--brand2);color:var(--brand);border-color:#aac1b3;font-weight:800}
+      .devotion-card{container-type:inline-size}.devotion-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.devotion-grid>div{min-width:0}.devotion-grid .wide{grid-column:1/-1}.mood-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-width:0}.mood{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 10px;font-size:12px}.mood.active{background:var(--brand2);color:var(--brand);border-color:#aac1b3;font-weight:800}.mood-add{border:1px dashed #bac5be;background:#f8faf8;color:var(--muted);border-radius:99px;padding:6px 10px;font-size:12px;font-weight:700}.mood-add:hover{background:#f0f4f1;color:var(--ink)}.mood-add-inline{display:inline-grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:6px;flex:0 1 430px;width:430px;max-width:100%;min-width:0}.mood-add-inline .field{min-width:0;min-height:36px;padding:7px 12px;border-radius:99px;font-size:12px}.mood-add-inline .btn{min-height:36px;padding:7px 11px;white-space:nowrap}
+      @container(max-width:520px){.devotion-grid{grid-template-columns:1fr}.devotion-grid .wide{grid-column:auto}}
+      @container(max-width:420px){.mood-add-inline{grid-template-columns:minmax(0,1fr) auto;width:100%;flex-basis:100%}.mood-add-inline .field{grid-column:1/-1}.mood-add-inline .btn{justify-self:end}}
       .timeline-wrap{overflow:auto;max-height:570px;border-top:1px solid var(--line)}.timeline-head{display:grid;grid-template-columns:58px 1fr 1fr;position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line)}.timeline-head div{padding:10px;text-align:center;font-size:12px;font-weight:800}.timeline-head div+div{border-left:1px solid var(--line)}.timeline{position:relative;display:grid;grid-template-columns:58px 1fr 1fr}.time-axis{position:relative;border-right:1px solid var(--line)}.time-label{position:absolute;right:8px;transform:translateY(-8px);font-size:10px;color:#89918c}.timeline-col{position:relative;border-right:1px solid var(--line);background:repeating-linear-gradient(to bottom,transparent 0,transparent 23px,#edf0ed 24px,transparent 25px,transparent 47px,#dfe5e0 48px)}.time-block{position:absolute;left:5px;right:5px;border-radius:9px;padding:6px 8px;color:#fff;font-size:11px;overflow:hidden;box-shadow:0 3px 10px rgba(30,50,40,.14);border:0;text-align:left}.time-block strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.time-block small{opacity:.88}.now-line{position:absolute;left:0;right:0;height:2px;background:#d85f55;z-index:7}.now-line:before{content:"";position:absolute;left:-4px;top:-4px;width:9px;height:9px;border-radius:50%;background:#d85f55}.schedule-form{padding:14px 18px;background:#f8faf8;border-top:1px solid var(--line);display:grid;grid-template-columns:100px minmax(150px,1fr) 105px 105px auto;gap:8px;align-items:end}.block-editor{padding:14px;background:#fff8ec;border-top:1px solid #ead9bb}.day-task-area{grid-column:span 2}
       .goal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.goal{padding:15px;border:1px solid var(--line);border-radius:15px;background:#fff}.goal .big{font-size:25px;font-weight:800}.week-days{display:grid;grid-template-columns:repeat(7,minmax(105px,1fr));gap:8px;overflow:auto}.week-day{border:1px solid var(--line);background:#fff;border-radius:14px;padding:11px;min-height:115px;text-align:left}.week-day.today{border-color:#a8b8ff;background:#f5f7ff}.week-day strong{display:block;margin-bottom:8px}.week-day p{font-size:11px;margin:4px 0;color:var(--muted)}.digest{display:flex;flex-direction:column;gap:9px}.digest-item{padding:13px;border-left:3px solid var(--brand);background:#f7f9f6;border-radius:0 12px 12px 0}.digest-item h4{margin:0 0 5px;font-size:13px}.digest-item p{margin:2px 0;font-size:12px;color:#58625c}
       .calendar{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--line);border-top:1px solid var(--line)}.cal-name{padding:9px;text-align:center;font-size:11px;font-weight:800;color:var(--muted);background:#f6f7f5;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.cal-day{min-height:116px;padding:9px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;text-align:left;vertical-align:top}.cal-day:hover{background:#f7faf7}.cal-day.out{background:#f5f6f4;color:#a8afaa}.cal-day.today{box-shadow:inset 0 0 0 2px var(--brand)}.cal-num{font-weight:800;font-size:12px}.cal-badge{display:block;margin-top:5px;padding:3px 5px;border-radius:6px;background:#eef2ff;color:var(--brand);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cal-faith{display:flex;gap:4px;margin-top:6px;font-size:10px;color:var(--muted)}
@@ -66,6 +68,8 @@
       .time-select-row{display:flex;align-items:center;gap:6px}
       .time-select-row select{flex:1;min-width:0}
       .time-select-row span{color:var(--muted);font-weight:700}
+      .time-day-note{display:inline-flex;margin-left:6px;padding:2px 7px;border-radius:999px;background:#eef2ff;color:#5b6fba;font-size:10px;font-weight:800;vertical-align:1px}
+      .schedule-time-error{margin:0;color:#c34f49;font-size:11px;font-weight:700;line-height:1.45}
       .color-palette{display:flex;gap:10px;flex-wrap:wrap}
       .color-palette button{width:28px;height:28px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer}
       .color-palette button.on{box-shadow:0 0 0 2px #fff,0 0 0 4px currentColor;transform:scale(1.06)}
@@ -151,6 +155,7 @@
       @media(max-width:1100px){.shell{grid-template-columns:1fr}.sidebar{display:none}.mobile-projects{display:block}.header-inner{flex-wrap:wrap}.header-actions{margin-left:0}.grid-3{grid-template-columns:1fr}.day-task-area{grid-column:auto}.prayer-grid{grid-template-columns:1fr}.day-overview,.faith-bottom{grid-template-columns:1fr}}
       @container quick-add-card (max-width:620px){.quick-add{grid-template-columns:minmax(0,1fr) minmax(76px,92px) auto}.quick-add .task-input{grid-column:1/-1;grid-row:1}.quick-add .quick-add-project{grid-column:1;grid-row:2}.quick-add .quick-add-priority{grid-column:2;grid-row:2}.quick-add .quick-add-submit{grid-column:3;grid-row:2}}
       @media(max-width:760px){.header-inner{padding:10px 12px;gap:9px}.brand small,.save-state{display:none}.nav{order:3;width:100%;overflow:auto}.nav button{flex:1;white-space:nowrap}.shell{padding:12px}.date-nav strong{min-width:110px}.hero{display:block}.hero-verse{margin-top:10px}.focus-list,.grid-2,.goal-grid,.faith-bottom{grid-template-columns:1fr}.faith-check,.devotion-grid{grid-template-columns:1fr}.devotion-grid .wide{grid-column:auto}.schedule-form{grid-template-columns:1fr 1fr}.schedule-form .schedule-title{grid-column:1/-1}.cal-day{min-height:100px}.prayer-grid{grid-template-columns:1fr}.page-title{font-size:23px}.timer-display{font-size:36px}.task{grid-template-columns:22px 28px 28px minmax(0,1fr) 30px 34px}.priority{display:none}.weekly-toolbar{grid-template-columns:1fr auto}.weekly-toolbar .weekly-input{grid-column:1/-1;grid-row:1}.weekly-project-head{flex-wrap:wrap}.palette{order:3;margin-left:28px}.weekly-task-row{grid-template-columns:22px minmax(0,1fr) 26px 26px}.weekly-task-row .priority{display:none}.tb-layout{grid-template-columns:48px minmax(0,1fr);padding:8px 10px 12px}.tb-zoom input[type=range]{width:90px}}
+      @media(max-width:760px){.mood-add-inline{grid-template-columns:minmax(0,1fr) auto auto;flex:1 1 100%;width:100%;min-width:0;max-width:none}}
       @media(max-width:760px){
         html,body,#app,.app,.header,.header-inner,.shell,.main{width:100%;max-width:100%;min-width:0}
         body,#app,.app{overflow-x:hidden}
@@ -737,6 +742,38 @@
         const total = Math.round(m);
         return `${pad(Math.floor(total / 60) % 24)}:${pad(total % 60)}`;
       };
+      const clockMin = (m) => ((Math.round(Number(m) || 0) % 1440) + 1440) % 1440;
+      const plannerRangeEnd = (startMin, endClockMin) => {
+        const start = clockMin(startMin);
+        const end = clockMin(endClockMin);
+        return end <= start ? end + 1440 : end;
+      };
+      const blockFitsPlannerDay = (startMin, endMin, dayStartMin) => {
+        const plannerEndMin = Number(dayStartMin) + 1440;
+        const duration = Number(endMin) - Number(startMin);
+        return (
+          duration >= 5 &&
+          Number(startMin) < plannerEndMin &&
+          Number(endMin) > Number(dayStartMin) &&
+          Number(endMin) <= plannerEndMin
+        );
+      };
+      const fittedBlockEnd = (startMin, dayStartMin, preferredDuration = 60) => {
+        const plannerEndMin = Number(dayStartMin) + 1440;
+        return clamp(Number(startMin) + preferredDuration, Number(startMin) + 5, plannerEndMin);
+      };
+      const blockDisplayRange = (startMin, endMin, dayStartMin) => {
+        const plannerStartMin = Number(dayStartMin);
+        const plannerEndMin = plannerStartMin + 1440;
+        const start = Number(startMin);
+        const end = Number(endMin);
+        return {
+          startMin: clamp(start - plannerStartMin, 0, 1440),
+          endMin: clamp(end - plannerStartMin, 0, 1440),
+          continuesFromPrevious: start < plannerStartMin,
+          continuesToNext: end > plannerEndMin,
+        };
+      };
       const snap5 = (m) => Math.round(m / 5) * 5;
       const snap15 = (m) => Math.round(m / 15) * 15;
       const SLOT_TIMES = (() => {
@@ -744,7 +781,19 @@
         for (let h = 0; h < 24; h++) for (let m = 0; m < 60; m += 5) slots.push(minToTime(h * 60 + m));
         return slots;
       })();
-      const emptyDevotion = () => ({ passage: "", word: "", meditation: "", mood: "", situation: "" });
+      const emptyDevotion = () => ({
+        passage: "",
+        word: "",
+        meditation: "",
+        mood: "",
+        customMoods: [],
+        situation: "",
+      });
+      const DEFAULT_DEVOTION_MOODS = ["평안", "감사", "기쁨", "지침", "불안", "슬픔"];
+      const normalizeCustomMoods = (values) =>
+        [...new Set((Array.isArray(values) ? values : []).map((mood) => String(mood || "").trim()).filter(Boolean))]
+          .filter((mood) => !DEFAULT_DEVOTION_MOODS.includes(mood))
+          .slice(0, 30);
       const emptyDay = () => ({
         todos: [],
         gratitude: [],
@@ -786,8 +835,8 @@
         y: 24 + Math.floor(count / 4) * (MEMO_CARD_H + 30),
       });
       function normalizeBlock(b) {
-        const start = snap5(clamp(timeToMin(b.startMin ?? b.startTime), 0, 1425));
-        const end = snap5(clamp(timeToMin(b.endMin ?? b.endTime), start + 5, 1440));
+        const start = snap5(clamp(timeToMin(b.startMin ?? b.startTime), 0, 1435));
+        const end = snap5(clamp(timeToMin(b.endMin ?? b.endTime), start + 5, start + 1440));
         return {
           ...b,
           id: b.id || uid(),
@@ -838,6 +887,7 @@
             ...emptyDevotion(),
             ...(raw.devotion && typeof raw.devotion === "object" ? raw.devotion : { meditation: raw.devotion || "" }),
             word: raw.devotion?.word || (raw.verses || []).map((v) => v.text).join("\n"),
+            customMoods: normalizeCustomMoods(raw.devotion?.customMoods),
           },
           faith: { ...emptyDay().faith, ...raw.faith },
           blocksPlan: (raw.blocksPlan || []).map((b, i) =>
@@ -1125,12 +1175,16 @@
         if (candidate + 45 > 1440) candidate = dayStartMin;
         return snap15(candidate);
       };
-      function TimeSelectRow({ label, value, onChange }) {
-        const h = Math.floor(value / 60);
-        const m = value % 60;
+      function TimeSelectRow({ label, value, onChange, dayNote = "" }) {
+        const clockValue = clockMin(value);
+        const h = Math.floor(clockValue / 60);
+        const m = clockValue % 60;
         return (
           <div>
-            <label className="label">{label}</label>
+            <label className="label">
+              {label}
+              {dayNote && <span className="time-day-note">{dayNote}</span>}
+            </label>
             <div className="time-select-row">
               <select className="field" value={h} onChange={(e) => onChange(+e.target.value * 60 + m)}>
                 {HOURS.map((hour) => (
@@ -1170,14 +1224,25 @@
           </div>
         );
       }
-      function BlockModal({ block, onSave, onClose, onDelete }) {
+      function BlockModal({ block, dayStartMin, onSave, onClose, onDelete }) {
         const [draft, setDraft] = useState(block);
         useEffect(() => {
           setDraft(block);
         }, [block]);
+        const duration = Number(draft.endMin) - Number(draft.startMin);
+        const validTimeRange = blockFitsPlannerDay(draft.startMin, draft.endMin, dayStartMin);
+        const updateStart = (startMin) => {
+          const preservedDuration = duration >= 5 && duration <= 1440 ? duration : 60;
+          setDraft({ ...draft, startMin, endMin: startMin + preservedDuration });
+        };
+        const updateEndClock = (endClockMin) =>
+          setDraft({
+            ...draft,
+            endMin: plannerRangeEnd(draft.startMin, endClockMin),
+          });
         const save = () => {
           if (!draft.title.trim()) return;
-          if (draft.endMin <= draft.startMin) return;
+          if (!validTimeRange) return;
           onSave({ ...draft, title: draft.title.trim() });
         };
         return (
@@ -1208,14 +1273,21 @@
                   <TimeSelectRow
                     label="시작"
                     value={draft.startMin}
-                    onChange={(startMin) => setDraft({ ...draft, startMin })}
+                    onChange={updateStart}
+                    dayNote={clockMin(draft.startMin) < dayStartMin ? "전날부터 이어짐" : ""}
                   />
                   <TimeSelectRow
                     label="끝"
                     value={draft.endMin}
-                    onChange={(endMin) => setDraft({ ...draft, endMin })}
+                    onChange={updateEndClock}
+                    dayNote={draft.endMin >= 1440 ? "다음 날" : ""}
                   />
                 </div>
+                {!validTimeRange && (
+                  <p className="schedule-time-error">
+                    끝 시간은 시작 시간보다 뒤여야 하며, 선택한 24시간 범위 안에 있어야 합니다.
+                  </p>
+                )}
                 <ColorPalette value={draft.color} onChange={(color) => setDraft({ ...draft, color })} />
               </div>
               <div className="modal-foot">
@@ -1225,7 +1297,7 @@
                   </Button>
                 )}
                 <Button onClick={onClose}>취소</Button>
-                <Button className="primary" onClick={save} disabled={!draft.title.trim() || draft.endMin <= draft.startMin}>
+                <Button className="primary" onClick={save} disabled={!draft.title.trim() || !validTimeRange}>
                   저장
                 </Button>
               </div>
@@ -3105,11 +3177,27 @@
         );
       }
       function Devotion({ day, updateDay }) {
-        const d = day.devotion,
-          moods = ["평안", "감사", "기쁨", "지침", "불안", "슬픔"];
+        const d = day.devotion;
+        const [addingMood, setAddingMood] = useState(false);
+        const [newMood, setNewMood] = useState("");
+        const customMoods = normalizeCustomMoods([
+          ...(d.customMoods || []),
+          ...(d.mood && !DEFAULT_DEVOTION_MOODS.includes(d.mood) ? [d.mood] : []),
+        ]);
+        const moods = [...DEFAULT_DEVOTION_MOODS, ...customMoods];
         const patch = (next) => updateDay((day) => ({ ...day, devotion: { ...day.devotion, ...next } }));
+        const addMood = () => {
+          const mood = newMood.trim();
+          if (!mood) return;
+          patch({
+            mood,
+            customMoods: normalizeCustomMoods([...customMoods, mood]),
+          });
+          setNewMood("");
+          setAddingMood(false);
+        };
         return (
-          <Card title="오늘의 묵상">
+          <Card title="오늘의 묵상" className="devotion-card">
             <div className="card-pad devotion-grid">
               <div>
                 <label className="label">본문</label>
@@ -3132,6 +3220,45 @@
                       {m}
                     </button>
                   ))}
+                  {!addingMood ? (
+                    <button type="button" className="mood-add" onClick={() => setAddingMood(true)}>
+                      + 기분 추가
+                    </button>
+                  ) : (
+                    <div className="mood-add-inline">
+                      <input
+                        className="field"
+                        value={newMood}
+                        maxLength="12"
+                        autoFocus
+                        onChange={(event) => setNewMood(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Escape") {
+                            setNewMood("");
+                            setAddingMood(false);
+                            return;
+                          }
+                          if (event.key !== "Enter" || isImeComposing(event)) return;
+                          event.preventDefault();
+                          addMood();
+                        }}
+                        placeholder="예: 기대, 설렘"
+                        aria-label="새 기분"
+                      />
+                      <Button className="soft" onClick={addMood} disabled={!newMood.trim()}>
+                        추가
+                      </Button>
+                      <Button
+                        className="ghost"
+                        onClick={() => {
+                          setNewMood("");
+                          setAddingMood(false);
+                        }}
+                      >
+                        취소
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="wide">
@@ -3302,20 +3429,26 @@
         const defaultStart = () => {
           if (fmtDate(date) !== fmtDate(new Date())) return dayStartMin;
           const nowAbs = new Date().getHours() * 60 + new Date().getMinutes();
-          return snap5(clamp(nowAbs, 0, 1425));
+          return snap5(clamp(nowAbs, 0, 1435));
         };
         const fitZoom = clamp((wrapHeight - 8) / (dayDuration * PX_PER_MIN), MIN_SCHEDULE_ZOOM, MAX_SCHEDULE_ZOOM);
         const fitsAll = innerHeight <= wrapHeight + 1;
-        const blockLayout = computeBlockLayout(visibleBlocks);
-        const openModal = (patch = {}) =>
+        const displayBlocks = visibleBlocks.map((block) => {
+          const range = blockDisplayRange(block.startMin, block.endMin, dayStartMin);
+          return { ...block, startMin: range.startMin, endMin: range.endMin };
+        });
+        const blockLayout = computeBlockLayout(displayBlocks);
+        const openModal = (patch = {}) => {
+          const startMin = patch.startMin ?? defaultStart();
           setEditBlock({
             id: patch.id || uid(),
             title: patch.title || "",
-            startMin: patch.startMin ?? defaultStart(),
-            endMin: patch.endMin ?? Math.min((patch.startMin ?? defaultStart()) + 60, 1440),
+            startMin,
+            endMin: patch.endMin ?? fittedBlockEnd(startMin, dayStartMin),
             color: patch.color || COLORS[4],
             isNew: patch.isNew ?? !patch.id,
           });
+        };
         useEffect(() => {
           if (!pendingBlock) return;
           openModal({ ...pendingBlock, isNew: true });
@@ -3367,7 +3500,7 @@
           const clickMin = topToMin(e.clientY - rect.top);
           openModal({
             startMin: clickMin,
-            endMin: Math.min(clickMin + 60, 1440),
+            endMin: fittedBlockEnd(clickMin, dayStartMin),
             isNew: true,
           });
         };
@@ -3392,16 +3525,20 @@
             if (Math.abs(delta) > 3) movedRef.current = true;
             const deltaMin = delta / pxPerMin;
             const duration = dragInfo.block.endMin - dragInfo.block.startMin;
-            let newStart = clamp(snap5(dragInfo.block.startMin + deltaMin), 0, 1440 - 5);
-            let newEnd = clamp(newStart + duration, newStart + 5, 1440);
-            if (newEnd - newStart < duration) newStart = clamp(snap5(newEnd - duration), 0, newEnd - 5);
+            const newStart = clamp(snap5(dragInfo.block.startMin + deltaMin), 0, 1440 - 5);
+            const newEnd = newStart + duration;
             updateBlock(dragInfo.block.id, { startMin: newStart, endMin: newEnd });
           } else if (resizeInfo) {
             const delta = e.clientY - resizeInfo.startY;
             if (Math.abs(delta) > 3) movedRef.current = true;
             const deltaMin = delta / pxPerMin;
             const newDuration = Math.max(5, resizeInfo.startDuration + deltaMin);
-            const newEnd = clamp(snap5(resizeInfo.block.startMin + newDuration), resizeInfo.block.startMin + 5, 1440);
+            const maxEnd = dayStartMin + 1440;
+            const newEnd = clamp(
+              snap5(resizeInfo.block.startMin + newDuration),
+              resizeInfo.block.startMin + 5,
+              maxEnd
+            );
             updateBlock(resizeInfo.block.id, { endMin: newEnd });
           }
         };
@@ -3472,16 +3609,16 @@
             const deltaMin = deltaY / pxPerMin;
             if (gesture.action === "move") {
               const duration = gesture.block.endMin - gesture.block.startMin;
-              let newStart = clamp(snap5(gesture.block.startMin + deltaMin), 0, 1440 - 5);
-              let newEnd = clamp(newStart + duration, newStart + 5, 1440);
-              if (newEnd - newStart < duration) newStart = clamp(snap5(newEnd - duration), 0, newEnd - 5);
+              const newStart = clamp(snap5(gesture.block.startMin + deltaMin), 0, 1440 - 5);
+              const newEnd = newStart + duration;
               updateBlock(gesture.block.id, { startMin: newStart, endMin: newEnd });
             } else {
               const newDuration = Math.max(5, gesture.startDuration + deltaMin);
+              const maxEnd = dayStartMin + 1440;
               const newEnd = clamp(
                 snap5(gesture.block.startMin + newDuration),
                 gesture.block.startMin + 5,
-                1440
+                maxEnd
               );
               updateBlock(gesture.block.id, { endMin: newEnd });
             }
@@ -3570,15 +3707,15 @@
                       return <div key={`half-${i}`} className="tb-hour tb-half" style={{ top }} />;
                     })}
                     {visibleBlocks.flatMap((block) => {
-                      const duration = Math.max(0, block.endMin - block.startMin);
-                      const dispStart = wrapMin(block.startMin);
-                      const segments =
-                        dispStart + duration <= dayDuration
-                          ? [{ top: dispStart, height: duration, isEnd: true, isStart: true }]
-                          : [
-                              { top: dispStart, height: dayDuration - dispStart, isEnd: false, isStart: true },
-                              { top: 0, height: duration - (dayDuration - dispStart), isEnd: true, isStart: false },
-                            ];
+                      const range = blockDisplayRange(block.startMin, block.endMin, dayStartMin);
+                      const visibleDuration = Math.max(0, range.endMin - range.startMin);
+                      if (!visibleDuration) return [];
+                      const segments = [{
+                        top: range.startMin,
+                        height: visibleDuration,
+                        isEnd: !range.continuesToNext,
+                        isStart: !range.continuesFromPrevious,
+                      }];
                       const layout = blockLayout[block.id] || { col: 0, cols: 1 };
                       const gap = 4;
                       const widthPct = 100 / layout.cols;
@@ -3612,6 +3749,7 @@
                             <>
                               <strong>{block.title}</strong>
                               <small>
+                                {range.continuesFromPrevious ? "전날부터 이어짐 · " : ""}
                                 {minToTime(block.startMin)} – {minToTime(block.endMin)}
                               </small>
                             </>
@@ -3645,6 +3783,7 @@
             {editBlock && (
               <BlockModal
                 block={editBlock}
+                dayStartMin={dayStartMin}
                 onSave={saveBlock}
                 onClose={() => setEditBlock(null)}
                 onDelete={
@@ -3687,7 +3826,7 @@
           setPendingSchedule({
             title: todo.text,
             startMin,
-            endMin: Math.min(startMin + 60, 1440),
+            endMin: fittedBlockEnd(startMin, dayStartMin),
             color: projectColor || COLORS[4],
           });
           toast("시간표에 추가할 일정을 확인해주세요");
@@ -5075,7 +5214,7 @@
               <div className="header-inner">
                 <div className="brand">
                   <span className="brand-mark brand-mark-image">
-                    <img src="./icon.png?v=8.1.4" alt="" aria-hidden="true" />
+                    <img src="./icon.png?v=8.1.5" alt="" aria-hidden="true" />
                   </span>
                   <span>
                     <strong>은혜의 하루</strong>
