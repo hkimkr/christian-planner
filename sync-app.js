@@ -866,6 +866,16 @@
       return;
     }
     await localCaptureChain.catch(() => undefined);
+    const reconnectingUserId = currentSession?.user?.id || "";
+    const reconnectingSameUser = Boolean(
+      reconnectingUserId && initializedUserId === reconnectingUserId
+    );
+    // Snapshot before clearing sync state. While remote fetch runs, the iframe
+    // may keep posting the same (possibly stale) store into pendingLocalRaw;
+    // only re-apply it if the fingerprint actually changed during the fetch.
+    const connectStartFingerprint =
+      lastObservedFingerprint ||
+      fingerprintRaw(localStorage.getItem(STORAGE_KEY) || "");
     const generation = ++syncGeneration;
     initializedUserId = "";
     if (reconnectTimer) {
@@ -890,10 +900,12 @@
     }
 
     let remote = new Map();
+    let remoteFetched = false;
     if (navigator.onLine !== false) {
       try {
         remote = await fetchRemoteRecords(userId);
         remote = await migrateIfNeeded(userId, remote);
+        remoteFetched = true;
       } catch (error) {
         if (!cached.size && !outbox.size) {
           setStatus("새 동기화 구조 설정이 필요합니다");
@@ -905,11 +917,21 @@
     }
     if (generation !== syncGeneration) return;
 
-    currentRecords = mergeRecordMaps(cached, remote, outbox);
+    // Online: cloud is authoritative. Cached IndexedDB snapshots and refreshed
+    // localStorage pending keys must not beat newer remote rows. Outbox still
+    // carries intentional offline edits and may override by timestamp.
+    if (remoteFetched) {
+      currentRecords = mergeRecordMaps(remote, outbox);
+    } else {
+      currentRecords = mergeRecordMaps(cached, remote, outbox);
+    }
 
     const legacyPending = readLegacyPending();
     const localRaw = localStorage.getItem(STORAGE_KEY) || "";
+    // Only use legacy pending when cloud was unavailable. Online reconnects
+    // already have intentional edits in the outbox from captureLocalChanges.
     if (
+      !remoteFetched &&
       legacyPending?.raw &&
       fingerprintRaw(legacyPending.raw) === fingerprintRaw(localRaw)
     ) {
@@ -953,10 +975,15 @@
       [...currentRecords.values()]
     );
     initializedUserId = userId;
-    if (pendingLocalRaw) {
-      const raw = pendingLocalRaw;
-      pendingLocalRaw = "";
-      await queueLocalCapture(raw);
+    // On first boot, discard the iframe default/stale snapshot. On reconnect,
+    // keep only edits whose content actually changed while fetch was in flight.
+    const reconnectRaw = reconnectingSameUser ? pendingLocalRaw : "";
+    pendingLocalRaw = "";
+    if (
+      reconnectRaw &&
+      fingerprintRaw(reconnectRaw) !== connectStartFingerprint
+    ) {
+      await queueLocalCapture(reconnectRaw).catch(() => undefined);
     }
     applyRecordsToPlanner(currentRecords);
     if (navigator.onLine === false) {
