@@ -1,4 +1,4 @@
-// Grace Planner sync v8.2.2 — see README "동기화 규칙". The rules that protect
+// Grace Planner sync v8.2.3 — see README "동기화 규칙". The rules that protect
 // data: written work is never dropped, empty values never overwrite content,
 // and a deletion requires an observed transition rather than mere absence.
 (() => {
