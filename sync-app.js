@@ -1,10 +1,17 @@
+// Grace Planner sync v8.2.0 — see README "동기화 규칙". The rules that protect
+// data: written work is never dropped, empty values never overwrite content,
+// and a deletion requires an observed transition rather than mere absence.
 (() => {
   "use strict";
 
   const STORAGE_KEY = "hamin-planner-v5";
   const LOCAL_UPDATED_KEY = "hamin-planner-v5-local-updated-at";
   const LEGACY_PENDING_KEY = "hamin-planner-v5-pending-sync";
+  const LAST_APPLIED_KEY = "hamin-planner-v5-last-applied-fp";
   const CLIENT_ID_KEY = "grace-planner-sync-client-id";
+  const TAB_CHANNEL_NAME = "grace-planner-sync-tabs-v1";
+  const INTENT_CLIENT_PREFIX = "intent-v1:";
+  const DELETE_INTENT_CLIENT_PREFIX = "delete-v1:";
   const DB_NAME = "grace-planner-sync-v1";
   const DB_VERSION = 1;
   const RECORDS_STORE = "records";
@@ -34,7 +41,7 @@
   const signUpButton = document.getElementById("cloud-signup");
   const signOutButton = document.getElementById("cloud-signout");
 
-  const clientId = (() => {
+  const deviceId = (() => {
     const saved = localStorage.getItem(CLIENT_ID_KEY);
     if (saved) return saved;
     const created =
@@ -43,6 +50,19 @@
     localStorage.setItem(CLIENT_ID_KEY, created);
     return created;
   })();
+  const tabId =
+    globalThis.crypto?.randomUUID?.() ||
+    `tab-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  // Every tab must be its own sync writer. With one id per device, a tab
+  // dismissed another tab's realtime rows as its own echo and the two never
+  // converged.
+  const clientId = `${deviceId}:tab:${tabId}`;
+  const intentClientId = `${INTENT_CLIENT_PREFIX}${clientId}`;
+  const deleteIntentClientId = `${DELETE_INTENT_CLIENT_PREFIX}${clientId}`;
+  const tabChannel =
+    typeof BroadcastChannel === "function"
+      ? new BroadcastChannel(TAB_CHANNEL_NAME)
+      : null;
 
   let currentSession = null;
   let channel = null;
@@ -53,6 +73,7 @@
   let syncGeneration = 0;
   let currentRecords = new Map();
   let lastObservedFingerprint = "";
+  let appliedFingerprint = "";
   let pendingPlannerStore = null;
   let pendingPlannerFingerprint = "";
   let plannerEditing = false;
@@ -60,7 +81,14 @@
   let deferredRemoteRecords = new Map();
   let deferredRemoteMessage = "";
   let localCaptureChain = Promise.resolve();
+  let latestQueuedLocalRaw = "";
+  let latestQueuedAdditiveOnly = false;
+  let localCaptureRunning = false;
   let pendingLocalRaw = "";
+  let deferredAckRaw = "";
+  let ackGateTimer = null;
+  let captureGateUntilApply = false;
+  let lastSnapshotKeys = null;
 
   const canonicalize = (value) => {
     if (Array.isArray(value)) return value.map(canonicalize);
@@ -107,11 +135,177 @@
     );
   };
 
-  const newerRecord = (left, right) => {
-    if (!left) return right;
-    if (!right) return left;
-    return compareRecords(left, right) >= 0 ? left : right;
-  };
+  // Default labels the app fills in for new items. Treating them as empty lets
+  // a real title win over an untouched placeholder regardless of timestamps.
+  const EMPTY_PLACEHOLDERS = new Set([
+    "새 항목",
+    "새 할 일",
+    "새 프로젝트",
+    "새 기도",
+    "제목 없음",
+    "제목 없는 메모",
+    "무제",
+  ]);
+  // Bookkeeping fields carry no user content, so they must not make an
+  // otherwise empty payload look meaningful.
+  const STRUCTURAL_KEYS = new Set([
+    "id",
+    "parent_id",
+    "order",
+    "createdAt",
+    "savedAt",
+    "updatedAt",
+    "completedAt",
+    "date",
+    "color",
+  ]);
+
+  const isPlainObject = (value) =>
+    Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+  function hasMeaningfulValue(value, key = "") {
+    if (STRUCTURAL_KEYS.has(key)) return false;
+    if (value == null) return false;
+    if (typeof value === "string") {
+      const text = value.trim();
+      return Boolean(text) && !EMPTY_PLACEHOLDERS.has(text);
+    }
+    if (typeof value === "number" || typeof value === "boolean") return true;
+    if (Array.isArray(value)) return value.some((item) => hasMeaningfulValue(item));
+    if (isPlainObject(value)) {
+      return Object.entries(value).some(
+        ([childKey, childValue]) =>
+          !STRUCTURAL_KEYS.has(childKey) &&
+          hasMeaningfulValue(childValue, childKey)
+      );
+    }
+    return Boolean(value);
+  }
+
+  const arrayItemKey = (item) =>
+    isPlainObject(item) && item.id != null ? String(item.id) : "";
+
+  // Merge field by field so that a newer-but-empty value never erases content.
+  // preferredIntent marks a snapshot we trust to have really removed list
+  // items; without it, entries missing from the preferred side are kept.
+  function mergeContentValues(olderValue, preferredValue, preferredIntent = false) {
+    const olderMeaningful = hasMeaningfulValue(olderValue);
+    const preferredMeaningful = hasMeaningfulValue(preferredValue);
+    if (!preferredMeaningful && olderMeaningful) return clone(olderValue);
+    if (!olderMeaningful) return clone(preferredValue);
+
+    if (Array.isArray(olderValue) && Array.isArray(preferredValue)) {
+      const combined = [...olderValue, ...preferredValue];
+      const keyed = combined.every(
+        (item) => !isPlainObject(item) || Boolean(arrayItemKey(item))
+      );
+      if (keyed && combined.some(isPlainObject)) {
+        const olderById = new Map(
+          olderValue.map((item) => [arrayItemKey(item), item]).filter(([id]) => id)
+        );
+        const merged = preferredValue.map((item) => {
+          const id = arrayItemKey(item);
+          return id && olderById.has(id)
+            ? mergeContentValues(olderById.get(id), item, preferredIntent)
+            : clone(item);
+        });
+        if (!preferredIntent) {
+          const preferredIds = new Set(
+            preferredValue.map(arrayItemKey).filter(Boolean)
+          );
+          olderValue.forEach((item) => {
+            const id = arrayItemKey(item);
+            if (!id || !preferredIds.has(id)) merged.push(clone(item));
+          });
+        }
+        return merged;
+      }
+      const seen = new Set();
+      return [...preferredValue, ...olderValue]
+        .filter((item) => {
+          const fingerprint = fingerprintValue(item);
+          if (seen.has(fingerprint)) return false;
+          seen.add(fingerprint);
+          return true;
+        })
+        .map(clone);
+    }
+
+    if (isPlainObject(olderValue) && isPlainObject(preferredValue)) {
+      const merged = {};
+      new Set([
+        ...Object.keys(olderValue),
+        ...Object.keys(preferredValue),
+      ]).forEach((childKey) => {
+        if (!(childKey in preferredValue)) {
+          merged[childKey] = clone(olderValue[childKey]);
+        } else if (!(childKey in olderValue)) {
+          merged[childKey] = clone(preferredValue[childKey]);
+        } else {
+          merged[childKey] = mergeContentValues(
+            olderValue[childKey],
+            preferredValue[childKey],
+            preferredIntent
+          );
+        }
+      });
+      return merged;
+    }
+
+    return clone(preferredValue);
+  }
+
+  const isIntentRecord = (record) =>
+    record?.local_intent === true ||
+    String(record?.client_id || "").startsWith(INTENT_CLIENT_PREFIX) ||
+    String(record?.client_id || "").startsWith(DELETE_INTENT_CLIENT_PREFIX);
+
+  const isOwnRecord = (record) =>
+    record?.client_id === clientId ||
+    record?.client_id === intentClientId ||
+    record?.client_id === deleteIntentClientId;
+
+  function contentAwareRecord(left, right) {
+    if (!left) return clone(right);
+    if (!right) return clone(left);
+    const preferred = compareRecords(left, right) >= 0 ? left : right;
+    const older = preferred === left ? right : left;
+    const preferredActive = !preferred.deleted_at && preferred.payload != null;
+    const olderActive = !older.deleted_at && older.payload != null;
+
+    // A confirmed deletion is the one case where losing content is intended.
+    if (
+      preferred.deleted_at &&
+      String(preferred.client_id || "").startsWith(DELETE_INTENT_CLIENT_PREFIX)
+    ) {
+      return clone(preferred);
+    }
+    if (!preferredActive && olderActive && hasMeaningfulValue(older.payload)) {
+      return clone(older);
+    }
+    if (!olderActive || !preferredActive) return clone(preferred);
+    if (
+      !hasMeaningfulValue(preferred.payload) &&
+      hasMeaningfulValue(older.payload)
+    ) {
+      return { ...clone(preferred), payload: clone(older.payload), deleted_at: null };
+    }
+    return {
+      ...clone(preferred),
+      payload: mergeContentValues(
+        older.payload,
+        preferred.payload,
+        isIntentRecord(preferred)
+      ),
+      deleted_at: null,
+    };
+  }
+
+  const sameRecordContent = (left, right) =>
+    Boolean(left) === Boolean(right) &&
+    (!left ||
+      (Boolean(left.deleted_at) === Boolean(right.deleted_at) &&
+        fingerprintValue(left.payload) === fingerprintValue(right.payload)));
 
   const hashText = (text) => {
     let hash = 2166136261;
@@ -390,10 +584,213 @@
     const merged = new Map();
     maps.forEach((records) => {
       records?.forEach((record, key) => {
-        merged.set(key, newerRecord(merged.get(key), record));
+        merged.set(key, contentAwareRecord(merged.get(key), record));
       });
     });
     return merged;
+  }
+
+  const activeRecordCount = (records, type) =>
+    [...(records?.values?.() || [])].filter(
+      (record) => record.entity_type === type && !record.deleted_at
+    ).length;
+
+  // A rough measure of "how much real content is in here", used only to tell a
+  // populated state from an empty one before deciding what to trust.
+  function storeContentScore(store) {
+    if (!store || typeof store !== "object") return 0;
+    let score = 0;
+    (Array.isArray(store.projects) ? store.projects : []).forEach((project) => {
+      if (hasMeaningfulValue(project?.name)) score += 1;
+    });
+    Object.values(store.days || {}).forEach((day) => {
+      score += (Array.isArray(day?.todos) ? day.todos.length : 0) * 4;
+      score += (Array.isArray(day?.gratitude) ? day.gratitude.length : 0) * 2;
+      score += (Array.isArray(day?.blocksPlan) ? day.blocksPlan.length : 0) * 2;
+      score += (Array.isArray(day?.blocksActual) ? day.blocksActual.length : 0) * 2;
+      score += (Array.isArray(day?.focusSessions) ? day.focusSessions.length : 0) * 2;
+    });
+    Object.values(store.weeks || {}).forEach((week) => {
+      score += (Array.isArray(week?.tasks) ? week.tasks.length : 0) * 4;
+      score += (Array.isArray(week?.projects) ? week.projects.length : 0) * 2;
+    });
+    (Array.isArray(store.prayerGroups) ? store.prayerGroups : []).forEach((group) => {
+      score += 1 + (Array.isArray(group?.items) ? group.items.length : 0) * 2;
+    });
+    score += (Array.isArray(store.memoSnapshots) ? store.memoSnapshots.length : 0) * 4;
+    if (String(store.scratch?.content || "").trim()) score += 3;
+    return score;
+  }
+
+  const recordsContentScore = (records) => {
+    if (!records?.size) return 0;
+    return (
+      activeRecordCount(records, "day_todo") * 4 +
+      activeRecordCount(records, "week_task") * 4 +
+      activeRecordCount(records, "memo") * 4 +
+      activeRecordCount(records, "prayer_item") * 2 +
+      activeRecordCount(records, "day_gratitude") * 2 +
+      activeRecordCount(records, "day_block_plan") * 2 +
+      activeRecordCount(records, "day_block_actual") * 2 +
+      activeRecordCount(records, "project")
+    );
+  };
+
+  const intentRecordsFromStore = (store, timestamp = Date.now()) => {
+    const marked = new Map();
+    let sequence = 0;
+    storeToRecords(store, new Date(timestamp).toISOString(), intentClientId)
+      .forEach((record, key) => {
+        sequence += 1;
+        marked.set(key, {
+          ...record,
+          updated_at: new Date(timestamp + sequence).toISOString(),
+          client_id: intentClientId,
+          local_intent: true,
+        });
+      });
+    return marked;
+  };
+
+  // Rows whose merged result differs from the cloud need to be pushed back so
+  // every device converges on the merged content.
+  function repairRecordsAgainstRemote(records, remoteRecords) {
+    const repairs = new Map();
+    let sequence = 0;
+    const now = Date.now();
+    records.forEach((record, key) => {
+      const remote = remoteRecords.get(key);
+      if (
+        sameRecordContent(record, remote) ||
+        (!remote && !hasMeaningfulValue(record.payload))
+      ) {
+        return;
+      }
+      sequence += 1;
+      repairs.set(key, {
+        ...clone(record),
+        updated_at: new Date(now + sequence).toISOString(),
+        client_id: record.deleted_at ? deleteIntentClientId : intentClientId,
+        local_intent: true,
+      });
+    });
+    return repairs;
+  }
+
+  // A refreshed localStorage snapshot is never trustworthy enough to update or
+  // remove a row the cloud already knows about: it may be this tab's stale copy
+  // or another tab's. It only rescues entities the cloud has never seen, such
+  // as a todo added moments before reload, before the upload ran.
+  function adoptUnsyncedLocalRecords({
+    localRecords,
+    remote,
+    cached,
+    outbox,
+    localStore,
+    lastAppliedFingerprint = "",
+  }) {
+    const adopted = new Map();
+    if (!localRecords?.size) return adopted;
+    const localFp = localStore ? fingerprintValue(localStore) : "";
+    if (lastAppliedFingerprint && localFp && localFp === lastAppliedFingerprint) {
+      return adopted;
+    }
+    const decidedKeys = new Set();
+    [remote, cached, outbox].forEach((source) =>
+      source?.forEach((record, key) => {
+        if (record) decidedKeys.add(key);
+      })
+    );
+    let sequence = 0;
+    const now = Date.now();
+    localRecords.forEach((local, key) => {
+      if (decidedKeys.has(key)) return;
+      if (local.deleted_at || local.payload == null) return;
+      if (!hasMeaningfulValue(local.payload)) return;
+      sequence += 1;
+      adopted.set(key, {
+        ...clone(local),
+        updated_at: new Date(now + sequence).toISOString(),
+        client_id: intentClientId,
+        local_intent: true,
+        deleted_at: null,
+      });
+    });
+    return adopted;
+  }
+
+  function resolveInitialRecordState({
+    remote,
+    cached,
+    outbox,
+    localRecords,
+    pendingRecords,
+    remoteFetched,
+    localStore,
+    lastAppliedFingerprint = "",
+  }) {
+    const trustedOutbox = new Map();
+    outbox.forEach((record, key) => {
+      if (isIntentRecord(record)) trustedOutbox.set(key, record);
+    });
+
+    if (!remoteFetched) {
+      const offlineRecords = mergeRecordMaps(
+        cached,
+        localRecords,
+        outbox,
+        pendingRecords
+      );
+      if (offlineRecords.size || storeContentScore(localStore) === 0) {
+        return {
+          records: offlineRecords,
+          outbox: new Map(outbox),
+          reason: "offline-local",
+        };
+      }
+      const recovered = intentRecordsFromStore(localStore);
+      return { records: recovered, outbox: recovered, reason: "offline-recovery" };
+    }
+
+    if (!recordsContentScore(remote) && storeContentScore(localStore) === 0) {
+      return {
+        records: mergeRecordMaps(remote),
+        outbox: new Map(),
+        reason: "empty-account",
+      };
+    }
+
+    // The cloud has nothing but this device does: push the local state up
+    // rather than letting an empty cloud blank the planner.
+    if (!recordsContentScore(remote) && storeContentScore(localStore) > 0) {
+      const recovered = intentRecordsFromStore(localStore);
+      const merged = mergeRecordMaps(remote, recovered, trustedOutbox);
+      const repairs = repairRecordsAgainstRemote(merged, remote);
+      return {
+        records: mergeRecordMaps(merged, repairs),
+        outbox: mergeRecordMaps(trustedOutbox, repairs),
+        reason: "meaningful-local-recovery",
+      };
+    }
+
+    const unsyncedLocal = adoptUnsyncedLocalRecords({
+      localRecords: mergeRecordMaps(localRecords, pendingRecords),
+      remote,
+      cached,
+      outbox,
+      localStore,
+      lastAppliedFingerprint,
+    });
+    const merged = mergeRecordMaps(remote, trustedOutbox, unsyncedLocal);
+    const repairs = repairRecordsAgainstRemote(merged, remote);
+    let reason = "cloud-authoritative";
+    if (unsyncedLocal.size) reason = "unsynced-local-adopt";
+    else if (repairs.size) reason = "content-aware-merge";
+    return {
+      records: mergeRecordMaps(merged, repairs),
+      outbox: mergeRecordMaps(trustedOutbox, unsyncedLocal, repairs),
+      reason,
+    };
   }
 
   function openSyncDb() {
@@ -447,6 +844,30 @@
           local_key: localRecordKey(userId, record),
         });
       });
+      transaction.oncomplete = resolve;
+      transaction.onerror = () => reject(transaction.error);
+    });
+    db.close();
+  }
+
+  async function replaceStoredRecords(storeName, userId, records) {
+    const db = await openSyncDb();
+    await new Promise((resolve, reject) => {
+      const transaction = db.transaction(storeName, "readwrite");
+      const objectStore = transaction.objectStore(storeName);
+      const request = objectStore.getAllKeys();
+      request.onsuccess = () => {
+        (request.result || [])
+          .filter((key) => String(key).startsWith(`${userId}|`))
+          .forEach((key) => objectStore.delete(key));
+        (records || []).forEach((record) =>
+          objectStore.put({
+            ...clone(record),
+            user_id: userId,
+            local_key: localRecordKey(userId, record),
+          })
+        );
+      };
       transaction.oncomplete = resolve;
       transaction.onerror = () => reject(transaction.error);
     });
@@ -512,12 +933,62 @@
     }
     const store = recordsToStore(records, fallback);
     const raw = JSON.stringify(store);
-    lastObservedFingerprint = fingerprintValue(store);
+    const appliedFp = fingerprintValue(store);
+    lastObservedFingerprint = appliedFp;
+    appliedFingerprint = appliedFp;
+    // The planner is about to display exactly these rows, so they become the
+    // baseline that a later snapshot is compared against.
+    lastSnapshotKeys = new Set(
+      [...records.keys()].filter((key) => !records.get(key)?.deleted_at)
+    );
     localStorage.setItem(STORAGE_KEY, raw);
     localStorage.setItem(LOCAL_UPDATED_KEY, String(Date.now()));
+    // Records what this device last received from the cloud, so a later
+    // reconnect can tell an untouched snapshot from one with new local work.
+    localStorage.setItem(LAST_APPLIED_KEY, appliedFp);
     postStoreToPlanner(store);
     if (message) setStatus(message);
   }
+
+  async function mergeIncomingRecords(userId, incomingRecords, message = "") {
+    const updates = [];
+    const repairs = [];
+    let sequence = 0;
+    const now = Date.now();
+    incomingRecords.forEach((incoming) => {
+      const key = recordKey(incoming);
+      const merged = contentAwareRecord(currentRecords.get(key), incoming);
+      currentRecords.set(key, merged);
+      updates.push(merged);
+      // The merge kept something the sender did not have, so push it back to
+      // let every device converge on the merged content.
+      if (!sameRecordContent(merged, incoming)) {
+        sequence += 1;
+        repairs.push({
+          ...clone(merged),
+          updated_at: new Date(now + sequence).toISOString(),
+          client_id: merged.deleted_at ? deleteIntentClientId : intentClientId,
+          local_intent: true,
+        });
+      }
+    });
+    if (updates.length) await putStoredRecords(RECORDS_STORE, userId, updates);
+    if (repairs.length) {
+      setStatus("내용이 있는 항목 우선 병합 · 클라우드 복구 중");
+      await queueRecords(repairs);
+    }
+    applyRecordsToPlanner(currentRecords, message);
+  }
+
+  const announceTabRecords = (records) => {
+    if (!tabChannel || !initializedUserId || !records?.length) return;
+    tabChannel.postMessage({
+      type: "grace-planner-tab-records",
+      sender: clientId,
+      userId: initializedUserId,
+      records: records.map((record) => clone(record)),
+    });
+  };
 
   async function fetchRemoteRecords(userId) {
     const { data, error } = await client
@@ -619,6 +1090,9 @@
       putStoredRecords(RECORDS_STORE, userId, records),
       putStoredRecords(OUTBOX_STORE, userId, records),
     ]);
+    // Other tabs in this browser see changes immediately, without waiting for
+    // the cloud round trip.
+    announceTabRecords(records);
     setStatus(
       navigator.onLine === false
         ? "오프라인 · 이 기기에 안전하게 저장됨"
@@ -627,7 +1101,41 @@
     scheduleUpload();
   }
 
-  async function captureLocalChanges(raw) {
+  // Container rows (a day, week, prayer group) that hold the child rows below.
+  const PARENT_TYPE_OF = {
+    day_todo: "day",
+    day_gratitude: "day",
+    day_block_plan: "day",
+    day_block_actual: "day",
+    day_focus_session: "day",
+    week_task: "week",
+    week_project: "week",
+    prayer_item: "prayer_group",
+  };
+
+  // Rule: an item is deleted only when the snapshot proves it. "Missing from
+  // the snapshot" alone is not proof — a stale, partial, or other-tab snapshot
+  // looks exactly the same and would wipe good data on every device.
+  function canDeleteFromSnapshot(existing, key, desired, additiveOnly, seenKeys) {
+    if (additiveOnly) return false;
+    // These two always exist in a valid snapshot, so they are never removable.
+    if (existing.entity_type === "root" || existing.entity_type === "scratch") {
+      return false;
+    }
+    // Deletion must be an observed transition: the planner showed this row
+    // before and no longer does. A row this tab never displayed (one that just
+    // arrived from another tab or device) is not ours to remove.
+    if (!seenKeys || !seenKeys.has(key)) return false;
+    const parentType = PARENT_TYPE_OF[existing.entity_type];
+    if (!parentType) return true;
+    const parentId = existing.payload?.parent_id;
+    if (!parentId) return false;
+    // A child goes only when its container is still in the snapshot, proving
+    // the snapshot covers that day/week/group and simply no longer lists it.
+    return desired.has(`${parentType}::${parentId}`);
+  }
+
+  async function captureLocalChanges(raw, additiveOnly = false) {
     if (!initializedUserId || !raw) return;
     let store;
     try {
@@ -635,6 +1143,7 @@
     } catch {
       return;
     }
+    if (!store || typeof store !== "object" || !store.days) return;
     const desired = storeToRecords(store);
     const changed = [];
     const now = Date.now();
@@ -642,56 +1151,138 @@
 
     desired.forEach((candidate, key) => {
       const existing = currentRecords.get(key);
-      if (
-        !existing ||
-        existing.deleted_at ||
-        fingerprintValue(existing.payload) !==
-          fingerprintValue(candidate.payload)
-      ) {
-        sequence += 1;
-        changed.push({
-          ...candidate,
-          updated_at: new Date(now + sequence).toISOString(),
-          client_id: clientId,
-          deleted_at: null,
-        });
+      const unchanged =
+        existing &&
+        !existing.deleted_at &&
+        fingerprintValue(existing.payload) === fingerprintValue(candidate.payload);
+      if (unchanged) return;
+      // An uncertain snapshot must not bring a deleted item back to life.
+      if (additiveOnly && existing?.deleted_at) return;
+      sequence += 1;
+      const localCandidate = {
+        ...candidate,
+        updated_at: new Date(now + sequence).toISOString(),
+        client_id: intentClientId,
+        deleted_at: null,
+        local_intent: true,
+      };
+      const existingActive =
+        existing && !existing.deleted_at && existing.payload != null;
+      const mergedCandidate = additiveOnly
+        ? {
+            ...localCandidate,
+            // Union merge: keeps this snapshot's new content while retaining
+            // list entries only the cloud copy has.
+            payload: existingActive
+              ? mergeContentValues(existing.payload, localCandidate.payload, false)
+              : localCandidate.payload,
+          }
+        : contentAwareRecord(existing, localCandidate);
+      if (!sameRecordContent(existing, mergedCandidate)) {
+        changed.push(mergedCandidate);
       }
     });
 
     currentRecords.forEach((existing, key) => {
-      if (!existing.deleted_at && !desired.has(key)) {
-        sequence += 1;
-        changed.push({
-          ...existing,
-          payload: null,
-          updated_at: new Date(now + sequence).toISOString(),
-          deleted_at: new Date(now + sequence).toISOString(),
-          client_id: clientId,
-        });
+      if (existing.deleted_at || desired.has(key)) return;
+      if (
+        !canDeleteFromSnapshot(existing, key, desired, additiveOnly, lastSnapshotKeys)
+      ) {
+        return;
       }
+      sequence += 1;
+      changed.push({
+        ...existing,
+        payload: null,
+        updated_at: new Date(now + sequence).toISOString(),
+        deleted_at: new Date(now + sequence).toISOString(),
+        client_id: deleteIntentClientId,
+        local_intent: true,
+      });
     });
+
+    // Remember what the planner was showing, so the next snapshot can be read
+    // as a transition rather than an absolute statement of what should exist.
+    lastSnapshotKeys = new Set(desired.keys());
 
     if (changed.length) await queueRecords(changed);
   }
 
-  const queueLocalCapture = (raw) => {
+  const queueLocalCapture = (raw, additiveOnly = false) => {
     if (!raw) return localCaptureChain;
-    lastObservedFingerprint = fingerprintRaw(raw);
     if (!initializedUserId) {
+      lastObservedFingerprint = fingerprintRaw(raw);
       pendingLocalRaw = raw;
       return localCaptureChain;
     }
-    localCaptureChain = localCaptureChain
-      .catch(() => undefined)
-      .then(() => captureLocalChanges(raw));
+    // A snapshot held at the gate below is not yet accepted as "what we have
+    // seen", so lastObservedFingerprint is only updated once we take it.
+    if (pendingPlannerStore || captureGateUntilApply) {
+      // We just pushed a cloud store to the iframe and are still waiting for
+      // its "applied" confirmation. Snapshots arriving now may be pre-push
+      // echoes, so hold the newest one instead of trusting it. It is never
+      // discarded: the ack handler or the timeout below will process it,
+      // because losing a real edit here is what makes fresh work vanish.
+      deferredAckRaw = raw;
+      if (!ackGateTimer) {
+        ackGateTimer = window.setTimeout(() => {
+          ackGateTimer = null;
+          // The iframe never confirmed (it reloaded, or the message was lost).
+          // Reopen the gate so edits keep flowing instead of piling up unsent.
+          pendingPlannerStore = null;
+          pendingPlannerFingerprint = "";
+          captureGateUntilApply = false;
+          releaseDeferredAck();
+        }, 1500);
+      }
+      return localCaptureChain;
+    }
+    lastObservedFingerprint = fingerprintRaw(raw);
+    // While typing, keep only the newest complete snapshot instead of
+    // processing every intermediate keystroke serially.
+    latestQueuedLocalRaw = raw;
+    latestQueuedAdditiveOnly = latestQueuedAdditiveOnly || additiveOnly;
+    if (localCaptureRunning) return localCaptureChain;
+    localCaptureRunning = true;
+    localCaptureChain = (async () => {
+      while (latestQueuedLocalRaw) {
+        const newestRaw = latestQueuedLocalRaw;
+        const newestAdditive = latestQueuedAdditiveOnly;
+        latestQueuedLocalRaw = "";
+        latestQueuedAdditiveOnly = false;
+        try {
+          await captureLocalChanges(newestRaw, newestAdditive);
+        } catch {
+          // IndexedDB/network retries are handled by the outbox and reconnect.
+        }
+      }
+    })().finally(() => {
+      localCaptureRunning = false;
+    });
     return localCaptureChain;
   };
+
+  // Process whatever the iframe posted while the cloud store was in flight.
+  // It is captured additively: it may contain genuinely new work, but it must
+  // not be able to remove anything the cloud already holds.
+  function releaseDeferredAck() {
+    if (ackGateTimer) {
+      window.clearTimeout(ackGateTimer);
+      ackGateTimer = null;
+    }
+    const raw = deferredAckRaw;
+    deferredAckRaw = "";
+    if (!raw) return;
+    // Identical to the store we pushed, so it was only an echo of it.
+    if (fingerprintRaw(raw) === appliedFingerprint) return;
+    queueLocalCapture(raw, true);
+  }
 
   const deferRemoteRecord = (record, message = "") => {
     const key = recordKey(record);
     deferredRemoteRecords.set(
       key,
-      newerRecord(deferredRemoteRecords.get(key), record)
+      contentAwareRecord(deferredRemoteRecords.get(key), record)
     );
     if (message) deferredRemoteMessage = message;
   };
@@ -701,17 +1292,12 @@
     else await localCaptureChain.catch(() => undefined);
 
     if (deferredRemoteRecords.size && initializedUserId) {
-      currentRecords = mergeRecordMaps(currentRecords, deferredRemoteRecords);
-      await putStoredRecords(
-        RECORDS_STORE,
-        initializedUserId,
-        [...currentRecords.values()]
-      );
+      const records = [...deferredRemoteRecords.values()];
       deferredRemoteRecords = new Map();
       const message =
         deferredRemoteMessage || "다른 기기의 변경사항을 받았습니다";
       deferredRemoteMessage = "";
-      applyRecordsToPlanner(currentRecords, message);
+      await mergeIncomingRecords(initializedUserId, records, message);
     }
 
     if (reconnectAfterEditing && currentSession?.user) {
@@ -719,6 +1305,33 @@
       await connectSync();
     }
   }
+
+  tabChannel?.addEventListener("message", async (event) => {
+    const message = event.data;
+    if (
+      message?.type !== "grace-planner-tab-records" ||
+      message.sender === clientId ||
+      !initializedUserId ||
+      message.userId !== initializedUserId ||
+      !Array.isArray(message.records) ||
+      !message.records.length
+    ) {
+      return;
+    }
+    await localCaptureChain.catch(() => undefined);
+    if (plannerEditing) {
+      message.records.forEach((record) =>
+        deferRemoteRecord(record, "다른 창의 변경사항을 입력 완료 후 병합합니다")
+      );
+      setStatus("입력 완료 후 다른 창 변경사항 병합");
+      return;
+    }
+    await mergeIncomingRecords(
+      initializedUserId,
+      message.records,
+      "다른 창의 변경사항을 병합했습니다"
+    );
+  });
 
   function readLegacyPending() {
     try {
@@ -757,19 +1370,25 @@
           "legacy-cloud"
         )
       : new Map();
-    const migrated = mergeRecordMaps(legacyRecords, localRecords);
+    const merged = mergeRecordMaps(legacyRecords, localRecords);
+    // Stamp the migration as intentional so the reconnect logic treats it as
+    // trusted local work to upload rather than a stale snapshot to discard.
+    const migrated = new Map();
+    let sequence = 0;
+    const now = Date.now();
+    merged.forEach((record, key) => {
+      sequence += 1;
+      migrated.set(key, {
+        ...clone(record),
+        updated_at: new Date(now + sequence).toISOString(),
+        client_id: intentClientId,
+        local_intent: true,
+      });
+    });
     if (migrated.size) {
       await Promise.all([
-        putStoredRecords(
-          RECORDS_STORE,
-          userId,
-          [...migrated.values()]
-        ),
-        putStoredRecords(
-          OUTBOX_STORE,
-          userId,
-          [...migrated.values()]
-        ),
+        putStoredRecords(RECORDS_STORE, userId, [...migrated.values()]),
+        putStoredRecords(OUTBOX_STORE, userId, [...migrated.values()]),
       ]);
     }
     return migrated;
@@ -797,28 +1416,16 @@
             deleted_at: payload.new.deleted_at,
             client_id: payload.new.client_id,
           };
-          if (incoming.client_id === clientId) return;
+          if (isOwnRecord(incoming)) return;
           await localCaptureChain.catch(() => undefined);
-          const key = recordKey(incoming);
-          const existing = plannerEditing
-            ? newerRecord(
-                currentRecords.get(key),
-                deferredRemoteRecords.get(key)
-              )
-            : currentRecords.get(key);
-          if (existing && compareRecords(existing, incoming) >= 0) return;
-          await putStoredRecords(RECORDS_STORE, userId, [incoming]);
           if (plannerEditing) {
-            deferRemoteRecord(
-              incoming,
-              "다른 기기의 변경사항을 받았습니다"
-            );
+            deferRemoteRecord(incoming, "다른 기기의 변경사항을 받았습니다");
             setStatus("입력 완료 후 다른 기기 변경사항 병합");
             return;
           }
-          currentRecords.set(key, incoming);
-          applyRecordsToPlanner(
-            currentRecords,
+          await mergeIncomingRecords(
+            userId,
+            [incoming],
             "다른 기기의 변경사항을 받았습니다"
           );
         }
@@ -904,7 +1511,13 @@
     if (navigator.onLine !== false) {
       try {
         remote = await fetchRemoteRecords(userId);
-        remote = await migrateIfNeeded(userId, remote);
+        const migrated = await migrateIfNeeded(userId, remote);
+        if (migrated !== remote) {
+          remote = migrated;
+          // Migration adds its own outbox entries; re-read so they are not
+          // dropped when the outbox is rewritten below.
+          outbox = await getStoredRecords(OUTBOX_STORE, userId);
+        }
         remoteFetched = true;
       } catch (error) {
         if (!cached.size && !outbox.size) {
@@ -917,74 +1530,69 @@
     }
     if (generation !== syncGeneration) return;
 
-    // Online: cloud is authoritative. Cached IndexedDB snapshots and refreshed
-    // localStorage pending keys must not beat newer remote rows. Outbox still
-    // carries intentional offline edits and may override by timestamp.
-    if (remoteFetched) {
-      currentRecords = mergeRecordMaps(remote, outbox);
-    } else {
-      currentRecords = mergeRecordMaps(cached, remote, outbox);
-    }
-
-    const legacyPending = readLegacyPending();
     const localRaw = localStorage.getItem(STORAGE_KEY) || "";
-    // Only use legacy pending when cloud was unavailable. Online reconnects
-    // already have intentional edits in the outbox from captureLocalChanges.
-    if (
-      !remoteFetched &&
-      legacyPending?.raw &&
-      fingerprintRaw(legacyPending.raw) === fingerprintRaw(localRaw)
-    ) {
-      const pendingRecords = storeToRecords(
-        JSON.parse(legacyPending.raw),
-        new Date(
-          Number(legacyPending.updatedAt) || Date.now()
-        ).toISOString(),
-        clientId
-      );
-      const changed = [];
-      pendingRecords.forEach((record, key) => {
-        const winner = newerRecord(currentRecords.get(key), record);
-        if (winner === record) changed.push(record);
-      });
-      if (changed.length) {
-        await Promise.all([
-          putStoredRecords(RECORDS_STORE, userId, changed),
-          putStoredRecords(OUTBOX_STORE, userId, changed),
-        ]);
-        currentRecords = mergeRecordMaps(currentRecords, pendingRecords);
+    let localStore = null;
+    try {
+      localStore = localRaw ? JSON.parse(localRaw) : null;
+    } catch {
+      localStore = null;
+    }
+    const localUpdatedAt =
+      Number(localStorage.getItem(LOCAL_UPDATED_KEY)) || Date.now();
+    const localRecords = localStore
+      ? storeToRecords(localStore, new Date(localUpdatedAt).toISOString(), clientId)
+      : new Map();
+    const legacyPending = readLegacyPending();
+    let pendingRecords = new Map();
+    if (legacyPending?.raw) {
+      try {
+        pendingRecords = storeToRecords(
+          JSON.parse(legacyPending.raw),
+          new Date(Number(legacyPending.updatedAt) || Date.now()).toISOString(),
+          clientId
+        );
+      } catch {
+        pendingRecords = new Map();
       }
     }
 
-    if (!currentRecords.size && localRaw) {
-      const seeded = storeToRecords(
-        JSON.parse(localRaw),
-        new Date().toISOString(),
-        clientId
-      );
-      currentRecords = seeded;
-      await Promise.all([
-        putStoredRecords(RECORDS_STORE, userId, [...seeded.values()]),
-        putStoredRecords(OUTBOX_STORE, userId, [...seeded.values()]),
+    const initialState = resolveInitialRecordState({
+      remote,
+      cached,
+      outbox,
+      localRecords,
+      pendingRecords,
+      remoteFetched,
+      localStore,
+      lastAppliedFingerprint: localStorage.getItem(LAST_APPLIED_KEY) || "",
+    });
+    currentRecords = initialState.records;
+    if (remoteFetched || initialState.reason === "offline-recovery") {
+      await replaceStoredRecords(OUTBOX_STORE, userId, [
+        ...initialState.outbox.values(),
       ]);
     }
+    await replaceStoredRecords(RECORDS_STORE, userId, [
+      ...currentRecords.values(),
+    ]);
 
-    await putStoredRecords(
-      RECORDS_STORE,
-      userId,
-      [...currentRecords.values()]
-    );
+    // Hold the capture path closed until the resolved store reaches the
+    // planner. Otherwise the snapshot the iframe still shows (a default store
+    // on first boot, or pre-merge content on reconnect) could look like an edit.
+    captureGateUntilApply = true;
     initializedUserId = userId;
-    // On first boot, discard the iframe default/stale snapshot. On reconnect,
-    // keep only edits whose content actually changed while fetch was in flight.
+    // On first boot, discard the iframe's default snapshot. On reconnect, keep
+    // edits that truly arrived while the remote fetch was in flight. They are
+    // merged additively because they predate the cloud state just fetched.
     const reconnectRaw = reconnectingSameUser ? pendingLocalRaw : "";
     pendingLocalRaw = "";
     if (
       reconnectRaw &&
       fingerprintRaw(reconnectRaw) !== connectStartFingerprint
     ) {
-      await queueLocalCapture(reconnectRaw).catch(() => undefined);
+      await captureLocalChanges(reconnectRaw, true).catch(() => undefined);
     }
+    captureGateUntilApply = false;
     applyRecordsToPlanner(currentRecords);
     if (navigator.onLine === false) {
       setStatus("오프라인 · 이 기기에 안전하게 저장됨");
@@ -1017,6 +1625,13 @@
       deferredRemoteMessage = "";
       reconnectAfterEditing = false;
       pendingLocalRaw = "";
+      deferredAckRaw = "";
+      pendingPlannerStore = null;
+      pendingPlannerFingerprint = "";
+      captureGateUntilApply = false;
+      lastSnapshotKeys = null;
+      if (ackGateTimer) window.clearTimeout(ackGateTimer);
+      ackGateTimer = null;
       await disconnectRealtime();
       return;
     }
@@ -1116,6 +1731,7 @@
     ) {
       pendingPlannerStore = null;
       pendingPlannerFingerprint = "";
+      releaseDeferredAck();
     }
   });
 
@@ -1123,13 +1739,29 @@
     if (pendingPlannerStore) postStoreToPlanner(pendingPlannerStore);
   });
 
+  // Safety net for snapshots that never arrived as a message. localStorage is
+  // shared by every tab, so what it holds may belong to another tab or be
+  // stale; such a snapshot may only add, never delete.
   window.setInterval(() => {
     if (!initializedUserId) return;
     const raw = localStorage.getItem(STORAGE_KEY) || "";
     const fingerprint = fingerprintRaw(raw);
     if (!raw || fingerprint === lastObservedFingerprint) return;
-    queueLocalCapture(raw);
+    queueLocalCapture(raw, true);
   }, 500);
+
+  // A refresh or a phone switching apps must not strand the newest edit.
+  const flushLocalBeforeUnload = () => {
+    if (!initializedUserId) return;
+    const raw = localStorage.getItem(STORAGE_KEY) || "";
+    if (!raw || fingerprintRaw(raw) === lastObservedFingerprint) return;
+    queueLocalCapture(raw, true);
+    if (currentSession?.user && navigator.onLine !== false) scheduleUpload(0);
+  };
+  window.addEventListener("pagehide", flushLocalBeforeUnload);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flushLocalBeforeUnload();
+  });
 
   window.addEventListener("offline", () => {
     setStatus("오프라인 · 이 기기에 안전하게 저장됨");
@@ -1143,6 +1775,89 @@
     }
     connectSync();
   });
+
+  if (new URLSearchParams(window.location.search).has("sync-test")) {
+    window.__plannerSyncDiagnostics = Object.freeze({
+      // How a device resolves what it holds when it reconnects.
+      simulate({
+        remoteStore = null,
+        cachedStore = null,
+        outboxStore = null,
+        outboxIntent = false,
+        localStore = null,
+        remoteFetched = true,
+        lastAppliedFingerprint = "",
+      } = {}) {
+        const recordsFor = (store, time, source) =>
+          store ? storeToRecords(store, new Date(time).toISOString(), source) : new Map();
+        const remote = recordsFor(remoteStore, 1000, "cloud-device");
+        const cached = recordsFor(cachedStore, 2000, "cached-device");
+        const outbox = outboxIntent
+          ? intentRecordsFromStore(outboxStore, 4000)
+          : recordsFor(outboxStore, 4000, "legacy-phone");
+        const resolved = resolveInitialRecordState({
+          remote,
+          cached,
+          outbox,
+          localRecords: recordsFor(localStore, 3000, "legacy-local"),
+          pendingRecords: new Map(),
+          remoteFetched,
+          localStore,
+          lastAppliedFingerprint,
+        });
+        const store = recordsToStore(resolved.records, {});
+        return {
+          reason: resolved.reason,
+          contentScore: recordsContentScore(resolved.records),
+          outboxCount: resolved.outbox.size,
+          todoTexts: Object.values(store.days || {})
+            .flatMap((day) => day.todos || [])
+            .map((todo) => String(todo?.text || ""))
+            .sort(),
+        };
+      },
+      // Which rows a given snapshot would remove, given what this device holds.
+      deletionPlan({
+        currentStore,
+        snapshotStore,
+        additiveOnly = false,
+        seenStore = null,
+      }) {
+        const current = storeToRecords(
+          currentStore,
+          new Date(1000).toISOString(),
+          "cloud-device"
+        );
+        const desired = storeToRecords(
+          snapshotStore,
+          new Date(2000).toISOString(),
+          "snapshot"
+        );
+        const seenKeys = new Set(
+          seenStore
+            ? storeToRecords(seenStore, new Date(900).toISOString(), "seen").keys()
+            : current.keys()
+        );
+        const removed = [];
+        current.forEach((existing, key) => {
+          if (existing.deleted_at || desired.has(key)) return;
+          if (canDeleteFromSnapshot(existing, key, desired, additiveOnly, seenKeys)) {
+            removed.push(key);
+          }
+        });
+        return removed.sort();
+      },
+      mergeStores(olderStore, newerStore) {
+        const older = storeToRecords(
+          olderStore,
+          new Date(1000).toISOString(),
+          "cloud-device"
+        );
+        const newer = intentRecordsFromStore(newerStore, 5000);
+        return recordsToStore(mergeRecordMaps(older, newer), {});
+      },
+    });
+  }
 
   client.auth.getSession().then(({ data }) => applySession(data.session));
   client.auth.onAuthStateChange((_event, session) => {
