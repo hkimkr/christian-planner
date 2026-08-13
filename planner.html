@@ -5041,7 +5041,7 @@
             d.setHours(0, 0, 0, 0);
             return d;
           }),
-          [saveState, setSaveState] = useState("저장됨"),
+        const [saveState, setSaveState] = useState("이 기기에 저장됨"),
           [message, setMessage] = useState("");
         const skipPendingWriteRef = useRef(true);
         const storeRef = useRef(store);
@@ -5053,17 +5053,19 @@
         };
         useEffect(() => {
           const receiveCloudStore = (event) => {
-            if (
-              event.origin !== window.location.origin ||
-              event.source !== window.parent ||
-              event.data?.type !== "grace-planner-cloud-store" ||
-              !event.data.store
-            ) {
+            if (event.origin !== window.location.origin || event.source !== window.parent) {
+              return;
+            }
+            if (event.data?.type === "grace-planner-sync-status" && event.data.message) {
+              setSaveState(event.data.message);
+              return;
+            }
+            if (event.data?.type !== "grace-planner-cloud-store" || !event.data.store) {
               return;
             }
             skipPendingWriteRef.current = true;
             setStore(normalizeStore(event.data.store));
-            setSaveState("저장됨");
+            setSaveState("이 기기에 반영됨");
             window.parent.postMessage(
               {
                 type: "grace-planner-cloud-store-applied",
@@ -5184,7 +5186,7 @@
               PENDING_SYNC_KEY,
               JSON.stringify({ raw, updatedAt })
             );
-            setSaveState("저장됨");
+            setSaveState("이 기기에 저장됨");
           } catch (e) {
             setSaveState("저장 실패");
             toast("저장 공간을 확인해주세요");
@@ -5214,7 +5216,7 @@
               <div className="header-inner">
                 <div className="brand">
                   <span className="brand-mark brand-mark-image">
-                    <img src="./icon.png?v=8.2.0" alt="" aria-hidden="true" />
+                    <img src="./icon.png?v=8.2.1" alt="" aria-hidden="true" />
                   </span>
                   <span>
                     <strong>은혜의 하루</strong>

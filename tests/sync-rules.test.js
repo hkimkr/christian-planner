@@ -145,6 +145,17 @@ check("새로 적은 할 일은 새로고침 후에도 살아남는다", () => {
   );
 });
 
+check("기존 할 일을 고친 내용은 새로고침 후에도 살아남는다", () => {
+  const edited = dayStore([todo("todo-1", "방금 고친 할 일")]);
+  const result = api.simulate({
+    remoteStore: cloudStore,
+    localStore: edited,
+    lastAppliedFingerprint: api.fingerprintStore(cloudStore),
+  });
+  assert.ok(result.todoTexts.includes("방금 고친 할 일"));
+  assert.ok(result.outboxCount > 0, "고친 내용이 업로드 대기해야 함");
+});
+
 // --- Rule 2: stale local never overwrites or resurrects --------------------
 
 check("오래된 로컬 스냅샷이 클라우드를 덮어쓰지 않는다", () => {

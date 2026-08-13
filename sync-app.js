@@ -1,4 +1,4 @@
-// Grace Planner sync v8.2.0 — see README "동기화 규칙". The rules that protect
+// Grace Planner sync v8.2.1 — see README "동기화 규칙". The rules that protect
 // data: written work is never dropped, empty values never overwrite content,
 // and a deletion requires an observed transition rather than mere absence.
 (() => {
@@ -677,10 +677,9 @@
     return repairs;
   }
 
-  // A refreshed localStorage snapshot is never trustworthy enough to update or
-  // remove a row the cloud already knows about: it may be this tab's stale copy
-  // or another tab's. It only rescues entities the cloud has never seen, such
-  // as a todo added moments before reload, before the upload ran.
+  // localStorage after a refresh is trustworthy only when it differs from the
+  // last store this device applied from the cloud. That difference is this
+  // tab's unsynced work (a new todo, or edits to one that already exists).
   function adoptUnsyncedLocalRecords({
     localRecords,
     remote,
@@ -695,26 +694,38 @@
     if (lastAppliedFingerprint && localFp && localFp === lastAppliedFingerprint) {
       return adopted;
     }
-    const decidedKeys = new Set();
-    [remote, cached, outbox].forEach((source) =>
-      source?.forEach((record, key) => {
-        if (record) decidedKeys.add(key);
-      })
-    );
+    const known = (key) =>
+      Boolean(remote?.get(key) || cached?.get(key) || outbox?.get(key));
+    const allowMergeExisting = Boolean(lastAppliedFingerprint && localFp);
+
     let sequence = 0;
     const now = Date.now();
-    localRecords.forEach((local, key) => {
-      if (decidedKeys.has(key)) return;
-      if (local.deleted_at || local.payload == null) return;
-      if (!hasMeaningfulValue(local.payload)) return;
+    const stamp = (record) => {
       sequence += 1;
-      adopted.set(key, {
-        ...clone(local),
+      return {
+        ...clone(record),
         updated_at: new Date(now + sequence).toISOString(),
         client_id: intentClientId,
         local_intent: true,
         deleted_at: null,
-      });
+      };
+    };
+
+    localRecords.forEach((local, key) => {
+      if (local.deleted_at || local.payload == null) return;
+      if (!hasMeaningfulValue(local.payload)) return;
+      const remoteRec = remote?.get(key);
+      const outboxRec = outbox?.get(key);
+      if (remoteRec?.deleted_at || outboxRec?.deleted_at) return;
+      if (!known(key)) {
+        adopted.set(key, stamp(local));
+        return;
+      }
+      if (!allowMergeExisting) return;
+      const merged = contentAwareRecord(remoteRec || cached?.get(key), stamp(local));
+      if (!sameRecordContent(merged, remoteRec || cached?.get(key))) {
+        adopted.set(key, merged);
+      }
     });
     return adopted;
   }
@@ -906,6 +917,10 @@
   const setStatus = (message) => {
     statusBox.textContent = message;
     if (currentSession) label.textContent = message;
+    frame?.contentWindow?.postMessage(
+      { type: "grace-planner-sync-status", message: String(message || "") },
+      window.location.origin
+    );
   };
 
   const postStoreToPlanner = (store) => {
@@ -1072,7 +1087,7 @@
     return true;
   }
 
-  const scheduleUpload = (delay = 650) => {
+  const scheduleUpload = (delay = 350) => {
     if (uploadTimer) window.clearTimeout(uploadTimer);
     uploadTimer = window.setTimeout(() => {
       uploadTimer = null;
@@ -1815,6 +1830,9 @@
             .map((todo) => String(todo?.text || ""))
             .sort(),
         };
+      },
+      fingerprintStore(store) {
+        return fingerprintValue(store);
       },
       // Which rows a given snapshot would remove, given what this device holds.
       deletionPlan({
