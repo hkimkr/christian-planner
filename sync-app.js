@@ -1,4 +1,4 @@
-// Grace Planner sync v8.2.1 — see README "동기화 규칙". The rules that protect
+// Grace Planner sync v8.2.2 — see README "동기화 규칙". The rules that protect
 // data: written work is never dropped, empty values never overwrite content,
 // and a deletion requires an observed transition rather than mere absence.
 (() => {
@@ -280,6 +280,7 @@
     ) {
       return clone(preferred);
     }
+    if (preferred.deleted_at) return clone(preferred);
     if (!preferredActive && olderActive && hasMeaningfulValue(older.payload)) {
       return clone(older);
     }
@@ -716,7 +717,10 @@
       if (!hasMeaningfulValue(local.payload)) return;
       const remoteRec = remote?.get(key);
       const outboxRec = outbox?.get(key);
-      if (remoteRec?.deleted_at || outboxRec?.deleted_at) return;
+      const cachedRec = cached?.get(key);
+      if (remoteRec?.deleted_at || outboxRec?.deleted_at || cachedRec?.deleted_at) {
+        return;
+      }
       if (!known(key)) {
         adopted.set(key, stamp(local));
         return;
@@ -1208,7 +1212,12 @@
       sequence += 1;
       changed.push({
         ...existing,
-        payload: null,
+        payload: existing.payload
+          ? {
+              parent_id: existing.payload.parent_id,
+              item: { id: existing.payload.item?.id },
+            }
+          : existing.payload,
         updated_at: new Date(now + sequence).toISOString(),
         deleted_at: new Date(now + sequence).toISOString(),
         client_id: deleteIntentClientId,
@@ -1802,10 +1811,21 @@
         localStore = null,
         remoteFetched = true,
         lastAppliedFingerprint = "",
+        remoteTombstoneKeys = [],
       } = {}) {
         const recordsFor = (store, time, source) =>
           store ? storeToRecords(store, new Date(time).toISOString(), source) : new Map();
         const remote = recordsFor(remoteStore, 1000, "cloud-device");
+        remoteTombstoneKeys.forEach((key) => {
+          const record = remote.get(key);
+          if (!record) return;
+          remote.set(key, {
+            ...record,
+            payload: null,
+            deleted_at: new Date(6000).toISOString(),
+            client_id: "cloud-device",
+          });
+        });
         const cached = recordsFor(cachedStore, 2000, "cached-device");
         const outbox = outboxIntent
           ? intentRecordsFromStore(outboxStore, 4000)

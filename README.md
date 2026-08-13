@@ -6,7 +6,7 @@
 
 | 파일 | 설명 |
 |------|------|
-| **`index.html` + `planner.html`** | **버전 8.2.1** — 설치형 PWA, 항목별 실시간 동기화, 오프라인 병합, 유실·오삭제 방지 동기화 규칙 |
+| **`index.html` + `planner.html`** | **버전 8.2.2** — 설치형 PWA, 항목별 실시간 동기화, 오프라인 병합, 유실·오삭제 방지 동기화 규칙 |
 | `hamin_planner_ver6.3.html` | 동기화 전 단일 HTML 보존본 |
 | `hamin_planner_ver6.2.html` | 메모·스냅샷 기능 |
 | `hamin_planner_ver6.html` | 시간표·사이드바 개선 |
@@ -53,7 +53,7 @@ git commit -m "Update planner"
 git push
 ```
 
-## 동기화 규칙 (버전 8.2.1)
+## 동기화 규칙 (버전 8.2.2)
 
 여러 기기·브라우저·탭에서 동시에 써도 내용이 사라지지 않도록, 아래 규칙을 지킵니다.
 

@@ -166,6 +166,16 @@ check("오래된 로컬 스냅샷이 클라우드를 덮어쓰지 않는다", ()
   assert.ok(result.todoTexts.includes("클라우드에 있는 할 일"));
 });
 
+check("이 기기에서 지운 할 일은 새로고침 후 다시 나타나면 안 된다", () => {
+  const result = api.simulate({
+    remoteStore: cloudStore,
+    localStore: dayStore([]),
+    lastAppliedFingerprint: api.fingerprintStore(cloudStore),
+    remoteTombstoneKeys: [`day_todo::${DAY}:todo-1`],
+  });
+  assert.ok(!result.todoTexts.includes("클라우드에 있는 할 일"));
+});
+
 check("빈 로컬 상태가 클라우드 내용을 지우지 않는다", () => {
   const result = api.simulate({ remoteStore: cloudStore, localStore: dayStore([]) });
   assert.ok(result.contentScore > 0, "클라우드 내용이 남아 있어야 함");
