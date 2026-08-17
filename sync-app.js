@@ -1,11 +1,21 @@
-// Grace Planner sync v8.3.0 — see README "동기화 규칙". The rules that protect
+// Grace Planner sync v8.3.1 — see README "동기화 규칙". The rules that protect
 // data: written work is never dropped, empty values never overwrite content,
 // and a deletion requires an observed transition rather than mere absence.
+// Rule 5's proof now comes from a key only real user edits write
+// (…-user-edited-at), and an "empty" cloud has to be proven before this
+// device's snapshot may be promoted to cloud truth: never when this device
+// already cached cloud rows, and only when an independent count agrees.
 (() => {
   "use strict";
 
   const STORAGE_KEY = "hamin-planner-v5";
   const LOCAL_UPDATED_KEY = "hamin-planner-v5-local-updated-at";
+  // Written by the planner iframe only when the user actually changed
+  // something. LOCAL_UPDATED_KEY is stamped by every local write,
+  // applyRecordsToPlanner included, so it says nothing about whether this
+  // device holds edits the cloud has not seen. Rule 5 needs that distinction
+  // and uses this key alone.
+  const USER_EDITED_KEY = "hamin-planner-v5-user-edited-at";
   const LEGACY_PENDING_KEY = "hamin-planner-v5-pending-sync";
   const LAST_APPLIED_KEY = "hamin-planner-v5-last-applied-fp";
   const CLIENT_ID_KEY = "grace-planner-sync-client-id";
@@ -752,6 +762,10 @@
     localStore,
     lastAppliedFingerprint = "",
     localUpdatedAt = 0,
+    // Did a second, independent read of the cloud agree that it holds no rows?
+    // Defaults to false so an unverified "empty" response can never promote
+    // local content: promotion needs positive proof, not an absence of doubt.
+    remoteEmptyConfirmed = false,
   }) {
     const trustedOutbox = new Map();
     outbox.forEach((record, key) => {
@@ -785,8 +799,22 @@
     }
 
     // The cloud has nothing but this device does: push the local state up
-    // rather than letting an empty cloud blank the planner.
+    // rather than letting an empty cloud blank the planner. Only when that
+    // emptiness is believable — otherwise behave like being offline: keep the
+    // local content on the device and upload nothing but what was queued.
     if (!recordsContentScore(remote) && storeContentScore(localStore) > 0) {
+      if (
+        !emptyCloudIsTrustworthy({
+          cachedSize: cached.size,
+          remoteEmptyConfirmed,
+        })
+      ) {
+        return {
+          records: mergeRecordMaps(cached, localRecords, outbox, pendingRecords),
+          outbox: new Map(outbox),
+          reason: "remote-empty-unverified",
+        };
+      }
       const recovered = intentRecordsFromStore(localStore);
       const merged = mergeRecordMaps(remote, recovered, trustedOutbox);
       const repairs = repairRecordsAgainstRemote(merged, remote);
@@ -979,6 +1007,49 @@
     if (message) setStatus(message);
   }
 
+  // Rule 5 evidence. `pendingRaw` is a snapshot the iframe posted before the
+  // cloud was read. It only proves freshness when it differs from what is
+  // already stored, i.e. it carries an edit that has not been written yet.
+  function localFreshnessAt({
+    pendingRaw = "",
+    storedRaw = "",
+    storedUpdatedAt = 0,
+    now = Date.now(),
+  }) {
+    const stored = Number(storedUpdatedAt) || 0;
+    if (!pendingRaw) return stored;
+    if (fingerprintRaw(pendingRaw) === fingerprintRaw(storedRaw || "")) {
+      return stored;
+    }
+    return now;
+  }
+
+  // Rule 5's only source of evidence. A device upgrading from an older version
+  // has no USER_EDITED_KEY yet, and it is read as "no user edit on record" (0)
+  // rather than falling back to LOCAL_UPDATED_KEY: that key is stamped by cloud
+  // applies too, so trusting it would keep the very hole this closes open.
+  // Nothing is lost by being strict — edits made but not yet uploaded live in
+  // the outbox, which is applied regardless of this timestamp.
+  function localEditEvidenceAt(pendingRaw = "") {
+    return localFreshnessAt({
+      pendingRaw,
+      storedRaw: localStorage.getItem(STORAGE_KEY) || "",
+      storedUpdatedAt: Number(localStorage.getItem(USER_EDITED_KEY)) || 0,
+    });
+  }
+
+  // Offering this device's snapshot as cloud truth bypasses rule 5, so a cloud
+  // that reports nothing has to be believable first. It is not when this device
+  // has cached cloud rows before (the account is then known to be non-empty, so
+  // zero rows means a truncated response or a session/RLS problem), nor when an
+  // independent count could not confirm the emptiness.
+  function emptyCloudIsTrustworthy({
+    cachedSize = 0,
+    remoteEmptyConfirmed = false,
+  }) {
+    return cachedSize === 0 && Boolean(remoteEmptyConfirmed);
+  }
+
   async function mergeIncomingRecords(userId, incomingRecords, message = "") {
     const updates = [];
     const repairs = [];
@@ -1053,6 +1124,25 @@
     const records = new Map();
     rows.forEach((record) => records.set(recordKey(record), record));
     return records;
+  }
+
+  // Second opinion on an empty cloud, asked a different way: a head request for
+  // the exact row count. The row read can come back empty for reasons that have
+  // nothing to do with the account being empty (an expired session, a policy
+  // change, a truncated or half-failed response), and treating those as "the
+  // cloud has nothing" is what lets an old local snapshot become cloud truth.
+  // Anything other than a clean count of 0 is reported as "not confirmed".
+  async function confirmRemoteEmpty(userId) {
+    try {
+      const { count, error } = await client
+        .from("planner_records")
+        .select("entity_id", { count: "exact", head: true })
+        .eq("user_id", userId);
+      if (error) return false;
+      return Number(count) === 0;
+    } catch {
+      return false;
+    }
   }
 
   async function fetchLegacyStore(userId) {
@@ -1401,8 +1491,18 @@
     }
   }
 
-  async function migrateIfNeeded(userId, remoteRecords) {
+  async function migrateIfNeeded(
+    userId,
+    remoteRecords,
+    { cachedSize = 0, remoteEmptyConfirmed = false } = {}
+  ) {
     if (remoteRecords.size) return remoteRecords;
+    // Migration stamps this device's snapshot as trusted local work to upload,
+    // which is the same promotion rule 5b guards: it may only run when the
+    // cloud is believably empty, not merely silent.
+    if (!emptyCloudIsTrustworthy({ cachedSize, remoteEmptyConfirmed })) {
+      return remoteRecords;
+    }
     const localRaw = localStorage.getItem(STORAGE_KEY) || "";
     let localStore = null;
     try {
@@ -1565,10 +1665,19 @@
 
     let remote = new Map();
     let remoteFetched = false;
+    let remoteEmptyConfirmed = false;
     if (navigator.onLine !== false) {
       try {
         remote = await fetchRemoteRecords(userId);
-        const migrated = await migrateIfNeeded(userId, remote);
+        // Only asked when it matters: the read came back with nothing to show,
+        // and this device would otherwise offer its snapshot as cloud truth.
+        remoteEmptyConfirmed = recordsContentScore(remote)
+          ? false
+          : await confirmRemoteEmpty(userId);
+        const migrated = await migrateIfNeeded(userId, remote, {
+          cachedSize: cached.size,
+          remoteEmptyConfirmed,
+        });
         if (migrated !== remote) {
           remote = migrated;
           // Migration adds its own outbox entries; re-read so they are not
@@ -1596,11 +1705,12 @@
     }
     const storedLocalUpdatedAt =
       Number(localStorage.getItem(LOCAL_UPDATED_KEY)) || 0;
-    // A missing key is no evidence of freshness, so the guard gets 0 rather
-    // than the Date.now() fallback used for record timestamps. An in-flight
-    // payload from the iframe is by definition current, so it carries the
-    // freshness this device is allowed to claim.
-    const localTouchedAt = pendingLocalRaw ? Date.now() : storedLocalUpdatedAt;
+    // Rule 5 evidence: the last real user edit, plus an in-flight payload that
+    // differs from the stored snapshot (an edit not written yet). A re-post of
+    // the stored snapshot — a plain page load — is neither, and a missing key is
+    // no evidence at all, so the guard gets 0 rather than the Date.now()
+    // fallback that record timestamps still use.
+    const localTouchedAt = localEditEvidenceAt(pendingLocalRaw);
     const localUpdatedAt = storedLocalUpdatedAt || Date.now();
     const localRecords = localStore
       ? storeToRecords(localStore, new Date(localUpdatedAt).toISOString(), clientId)
@@ -1629,6 +1739,7 @@
       localStore,
       lastAppliedFingerprint: localStorage.getItem(LAST_APPLIED_KEY) || "",
       localUpdatedAt: localTouchedAt,
+      remoteEmptyConfirmed,
     });
     currentRecords = initialState.records;
     if (remoteFetched || initialState.reason === "offline-recovery") {
@@ -1657,9 +1768,19 @@
       await captureLocalChanges(reconnectRaw, true).catch(() => undefined);
     }
     captureGateUntilApply = false;
-    applyRecordsToPlanner(currentRecords);
+    const remoteEmptyUnverified =
+      initialState.reason === "remote-empty-unverified";
+    applyRecordsToPlanner(
+      currentRecords,
+      remoteEmptyUnverified ? "클라우드 확인 불가, 업로드 보류" : ""
+    );
     if (navigator.onLine === false) {
       setStatus("오프라인 · 이 기기에 안전하게 저장됨");
+    } else if (remoteEmptyUnverified) {
+      // The cloud reported nothing and could not confirm it. Uploading now
+      // would push this device's copy over rows the read never showed, so wait
+      // for a read that can be trusted instead.
+      scheduleReconnect();
     } else {
       await uploadOutbox();
       if (generation !== syncGeneration) return;
@@ -1855,6 +1976,9 @@
         // When this device last wrote its local store. Defaults to the local
         // snapshot's own write time (3000), i.e. after the cloud rows (1000).
         localUpdatedAt = 3000,
+        // Defaults to a cloud that confirmed it is empty, so scenarios written
+        // before the trust gate existed keep describing the same situation.
+        remoteEmptyConfirmed = true,
       } = {}) {
         const recordsFor = (store, time, source) =>
           store ? storeToRecords(store, new Date(time).toISOString(), source) : new Map();
@@ -1883,6 +2007,7 @@
           localStore,
           lastAppliedFingerprint,
           localUpdatedAt,
+          remoteEmptyConfirmed,
         });
         const store = recordsToStore(resolved.records, {});
         return {
@@ -1897,6 +2022,19 @@
       },
       fingerprintStore(store) {
         return fingerprintValue(store);
+      },
+      localFreshnessAt(input) {
+        return localFreshnessAt(input);
+      },
+      // Rule 5 evidence as the shell really reads it, straight out of
+      // localStorage: which key it trusts is part of the rule.
+      localEditEvidenceAt(pendingRaw = "") {
+        return localEditEvidenceAt(pendingRaw);
+      },
+      // The gate that both the reconnect path and the migration path ask before
+      // treating a silent cloud as an empty one.
+      emptyCloudIsTrustworthy(input) {
+        return emptyCloudIsTrustworthy(input);
       },
       // Which rows a given snapshot would remove, given what this device holds.
       deletionPlan({

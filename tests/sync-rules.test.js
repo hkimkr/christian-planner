@@ -174,6 +174,70 @@ check("며칠 전 스냅샷을 든 기기가 재접속해도 최신 클라우드
   assert.strictEqual(result.outboxCount, 0, "덮어쓰기 업로드가 없어야 함");
 });
 
+// 규칙 5의 증거는 "실제 편집"만이다. LOCAL_UPDATED_KEY는 클라우드 내용을 이 기기에
+// 적용할 때도 찍히므로, 셸은 USER_EDITED_KEY만 본다. 예전 버전에서 올라온 기기에는
+// 이 키가 없는데, 그때는 "편집 기록 없음(0)"으로 읽는다.
+const localStorageStub = sandbox.window.localStorage;
+const STORAGE_KEY = "hamin-planner-v5";
+const LOCAL_UPDATED_KEY = "hamin-planner-v5-local-updated-at";
+const USER_EDITED_KEY = "hamin-planner-v5-user-edited-at";
+const setStoredLocal = ({ raw = "", localUpdatedAt = null, userEditedAt = null }) => {
+  localStorageStub.setItem(STORAGE_KEY, raw);
+  if (localUpdatedAt === null) localStorageStub.removeItem(LOCAL_UPDATED_KEY);
+  else localStorageStub.setItem(LOCAL_UPDATED_KEY, String(localUpdatedAt));
+  if (userEditedAt === null) localStorageStub.removeItem(USER_EDITED_KEY);
+  else localStorageStub.setItem(USER_EDITED_KEY, String(userEditedAt));
+};
+
+check("실제 사용자 편집은 오래된 클라우드 행보다 우선한다", () => {
+  const edited = dayStore([todo("todo-1", "방금 고친 할 일")]);
+  setStoredLocal({
+    raw: JSON.stringify(edited),
+    // 클라우드를 적용하며 찍힌 시각은 더 최근이지만, 증거로 쓰여선 안 된다.
+    localUpdatedAt: 9000,
+    userEditedAt: 5000,
+  });
+  const evidence = api.localEditEvidenceAt();
+  assert.strictEqual(evidence, 5000, "셸은 사용자 편집 시각만 증거로 읽어야 함");
+  const result = api.simulate({
+    remoteStore: cloudStore,
+    localStore: edited,
+    lastAppliedFingerprint: api.fingerprintStore(cloudStore),
+    localUpdatedAt: evidence,
+  });
+  assert.ok(result.todoTexts.includes("방금 고친 할 일"));
+});
+
+check("편집 없이 페이지만 열면 규칙 5의 증거가 없다", () => {
+  const daysOldLocal = dayStore([todo("todo-1", "3일 전에 쓰던 할 일")]);
+  const storedRaw = JSON.stringify(daysOldLocal);
+  // 편집 없이 열기만 한 기기: 사용자 편집 키가 없고, 저장 시각만 방금 찍혀 있다.
+  setStoredLocal({ raw: storedRaw, localUpdatedAt: 9000, userEditedAt: null });
+  assert.strictEqual(api.localEditEvidenceAt(), 0, "편집 기록이 없으면 증거도 없어야 함");
+  // 저장본을 그대로 다시 보낸 in-flight 스냅샷도 증거가 되지 않는다.
+  assert.strictEqual(api.localEditEvidenceAt(storedRaw), 0);
+  const result = api.simulate({
+    remoteStore: cloudStore,
+    localStore: daysOldLocal,
+    lastAppliedFingerprint: "something-else",
+    localUpdatedAt: api.localEditEvidenceAt(storedRaw),
+  });
+  assert.ok(result.todoTexts.includes("클라우드에 있는 할 일"));
+  assert.ok(
+    !result.todoTexts.includes("3일 전에 쓰던 할 일"),
+    "편집 증거 없이 오래된 스냅샷이 클라우드를 덮으면 안 됨"
+  );
+});
+
+check("아직 저장되지 않은 in-flight 편집은 편집 키가 없어도 증거가 된다", () => {
+  const storedRaw = JSON.stringify(dayStore([todo("todo-1", "저장본")]));
+  const editedRaw = JSON.stringify(dayStore([todo("todo-1", "방금 고친 할 일")]));
+  setStoredLocal({ raw: storedRaw, localUpdatedAt: 9000, userEditedAt: null });
+  assert.ok(api.localEditEvidenceAt(editedRaw) > 0);
+  // 저장본과 같은 내용이면 여전히 증거가 아니다.
+  assert.strictEqual(api.localEditEvidenceAt(storedRaw), 0);
+});
+
 // --- Rule 2: stale local never overwrites or resurrects --------------------
 
 check("오래된 로컬 스냅샷이 클라우드를 덮어쓰지 않는다", () => {
@@ -203,6 +267,66 @@ check("클라우드가 비어 있으면 로컬 내용을 올린다", () => {
   const result = api.simulate({ remoteStore: dayStore([]), localStore: cloudStore });
   assert.strictEqual(result.reason, "meaningful-local-recovery");
   assert.ok(result.outboxCount > 0, "로컬 내용이 업로드 대기해야 함");
+});
+
+// --- Rule 5b: an empty cloud must be proven before local is promoted -------
+
+check("캐시엔 행이 있는데 조회가 0행이면 승격하지 않는다", () => {
+  const daysOldLocal = dayStore([todo("todo-1", "3일 전에 쓰던 할 일")]);
+  const result = api.simulate({
+    // 조회는 0행. 그러나 이 기기는 전에 클라우드 행을 받아 캐시에 갖고 있다.
+    remoteStore: null,
+    cachedStore: cloudStore,
+    localStore: daysOldLocal,
+    // 카운트 조회까지 0을 확인해줘도 캐시에 행이 있으면 승격은 금지다.
+    remoteEmptyConfirmed: true,
+  });
+  assert.strictEqual(result.reason, "remote-empty-unverified");
+  assert.strictEqual(result.outboxCount, 0, "오래된 스냅샷을 올려선 안 됨");
+});
+
+check("확인되지 않은 빈 클라우드에는 로컬을 올리지 않는다", () => {
+  const localOnly = dayStore([todo("todo-1", "이 기기에만 있는 할 일")]);
+  const result = api.simulate({
+    remoteStore: null,
+    localStore: localOnly,
+    // 카운트 조회가 실패했거나 0이 아니라고 답한 상황.
+    remoteEmptyConfirmed: false,
+  });
+  assert.strictEqual(result.reason, "remote-empty-unverified");
+  assert.strictEqual(result.outboxCount, 0, "확인 전에는 업로드 보류");
+  assert.ok(result.contentScore > 0, "로컬 내용은 이 기기에 남아 있어야 함");
+});
+
+check("정말 빈 계정의 첫 동기화는 로컬 내용을 올린다", () => {
+  const firstSyncLocal = dayStore([todo("todo-1", "처음 적은 할 일")]);
+  const result = api.simulate({
+    remoteStore: null,
+    cachedStore: null,
+    localStore: firstSyncLocal,
+    remoteEmptyConfirmed: true,
+  });
+  assert.strictEqual(result.reason, "meaningful-local-recovery");
+  assert.ok(result.outboxCount > 0, "빈 계정에는 로컬 내용을 올려야 함");
+});
+
+check("옛 저장소 마이그레이션도 같은 신뢰 조건을 따른다", () => {
+  // 첫 동기화(캐시 없음 + 0행 확인됨)에서만 승격이 허용된다.
+  assert.strictEqual(
+    api.emptyCloudIsTrustworthy({ cachedSize: 0, remoteEmptyConfirmed: true }),
+    true
+  );
+  // 캐시에 클라우드 행이 있으면 0행은 잘린 응답이나 세션 문제로 본다.
+  assert.strictEqual(
+    api.emptyCloudIsTrustworthy({ cachedSize: 3, remoteEmptyConfirmed: true }),
+    false
+  );
+  // 카운트로 확인되지 않은 0행도 승격 근거가 아니다.
+  assert.strictEqual(
+    api.emptyCloudIsTrustworthy({ cachedSize: 0, remoteEmptyConfirmed: false }),
+    false
+  );
+  assert.strictEqual(api.emptyCloudIsTrustworthy({}), false);
 });
 
 // --- Rule 3: deletions require proof --------------------------------------
