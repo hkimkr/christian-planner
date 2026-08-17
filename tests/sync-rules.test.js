@@ -407,6 +407,31 @@ check("완료 체크 같은 상태 변경은 반영된다", () => {
   assert.strictEqual(merged.days[DAY].todos[0].done, true);
 });
 
+check("로그인 전에 고친 기존 할 일은 클라우드에 반영된다", () => {
+  const edited = dayStore([todo("todo-1", "로그인 전에 고친 할 일")]);
+  const result = api.simulate({
+    remoteStore: cloudStore,
+    localStore: edited,
+    lastAppliedFingerprint: "",
+    localUpdatedAt: 3000,
+  });
+  assert.ok(result.todoTexts.includes("로그인 전에 고친 할 일"));
+  assert.ok(result.outboxCount > 0);
+});
+
+check("오프라인에서 고친 기존 할 일은 편집 키가 없어도 재접속 후 살아남는다", () => {
+  const edited = dayStore([todo("todo-1", "오프라인에서 고친 할 일")]);
+  const result = api.simulate({
+    remoteStore: cloudStore,
+    cachedStore: cloudStore,
+    localStore: edited,
+    lastAppliedFingerprint: api.fingerprintStore(cloudStore),
+    localUpdatedAt: 0,
+  });
+  assert.ok(result.todoTexts.includes("오프라인에서 고친 할 일"));
+  assert.ok(result.outboxCount > 0);
+});
+
 // --- Report ---------------------------------------------------------------
 
 let failed = 0;

@@ -1,4 +1,7 @@
-// Grace Planner sync v8.3.1 — see README "동기화 규칙". The rules that protect
+// Grace Planner sync v8.3.2 — offline / logged-out edits to an existing item
+// survive login: a row that differs from the last cached cloud copy is this
+// device's work. lastAppliedFingerprint and USER_EDITED_KEY were dropping
+// that work because a logged-out session has no apply baseline.
 // data: written work is never dropped, empty values never overwrite content,
 // and a deletion requires an observed transition rather than mere absence.
 // Rule 5's proof now comes from a key only real user edits write
@@ -708,11 +711,6 @@
     }
     const known = (key) =>
       Boolean(remote?.get(key) || cached?.get(key) || outbox?.get(key));
-    const allowMergeExisting = Boolean(lastAppliedFingerprint && localFp);
-    // A differing fingerprint alone cannot tell "typed seconds before reload"
-    // apart from "this browser sat on a days-old snapshot". Overwriting an
-    // existing row therefore also requires that this device wrote its local
-    // store after the cloud wrote that row.
     const localTouchedAt = Number(localUpdatedAt) || 0;
 
     let sequence = 0;
@@ -741,9 +739,22 @@
         adopted.set(key, stamp(local));
         return;
       }
-      if (!allowMergeExisting) return;
       const baseRec = remoteRec || cachedRec;
-      if (!localTouchedAt || timestampOf(baseRec) >= localTouchedAt) return;
+      if (sameRecordContent(local, baseRec)) return;
+      if (
+        remoteRec &&
+        cachedRec &&
+        sameRecordContent(local, cachedRec) &&
+        !sameRecordContent(remoteRec, cachedRec)
+      ) {
+        return;
+      }
+      const editedSinceCache = Boolean(
+        cachedRec && !sameRecordContent(local, cachedRec)
+      );
+      const editedByClock =
+        Boolean(localTouchedAt) && timestampOf(baseRec) < localTouchedAt;
+      if (!editedSinceCache && !editedByClock) return;
       const merged = contentAwareRecord(baseRec, stamp(local));
       if (!sameRecordContent(merged, baseRec)) {
         adopted.set(key, merged);
