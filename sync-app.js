@@ -1,4 +1,4 @@
-// Grace Planner sync v8.2.3 — see README "동기화 규칙". The rules that protect
+// Grace Planner sync v8.3.0 — see README "동기화 규칙". The rules that protect
 // data: written work is never dropped, empty values never overwrite content,
 // and a deletion requires an observed transition rather than mere absence.
 (() => {
@@ -688,6 +688,7 @@
     outbox,
     localStore,
     lastAppliedFingerprint = "",
+    localUpdatedAt = 0,
   }) {
     const adopted = new Map();
     if (!localRecords?.size) return adopted;
@@ -698,6 +699,11 @@
     const known = (key) =>
       Boolean(remote?.get(key) || cached?.get(key) || outbox?.get(key));
     const allowMergeExisting = Boolean(lastAppliedFingerprint && localFp);
+    // A differing fingerprint alone cannot tell "typed seconds before reload"
+    // apart from "this browser sat on a days-old snapshot". Overwriting an
+    // existing row therefore also requires that this device wrote its local
+    // store after the cloud wrote that row.
+    const localTouchedAt = Number(localUpdatedAt) || 0;
 
     let sequence = 0;
     const now = Date.now();
@@ -726,8 +732,10 @@
         return;
       }
       if (!allowMergeExisting) return;
-      const merged = contentAwareRecord(remoteRec || cached?.get(key), stamp(local));
-      if (!sameRecordContent(merged, remoteRec || cached?.get(key))) {
+      const baseRec = remoteRec || cachedRec;
+      if (!localTouchedAt || timestampOf(baseRec) >= localTouchedAt) return;
+      const merged = contentAwareRecord(baseRec, stamp(local));
+      if (!sameRecordContent(merged, baseRec)) {
         adopted.set(key, merged);
       }
     });
@@ -743,6 +751,7 @@
     remoteFetched,
     localStore,
     lastAppliedFingerprint = "",
+    localUpdatedAt = 0,
   }) {
     const trustedOutbox = new Map();
     outbox.forEach((record, key) => {
@@ -795,6 +804,7 @@
       outbox,
       localStore,
       lastAppliedFingerprint,
+      localUpdatedAt,
     });
     const merged = mergeRecordMaps(remote, trustedOutbox, unsyncedLocal);
     const repairs = repairRecordsAgainstRemote(merged, remote);
@@ -1009,16 +1019,39 @@
     });
   };
 
+  // Supabase caps a single response (1000 rows by default). An unpaged fetch
+  // silently returned a partial cloud, and rows beyond the cap looked like
+  // entities the cloud had never seen — so this device re-uploaded its older
+  // copies over newer content. Always read every page.
+  const REMOTE_PAGE_SIZE = 1000;
+
+  async function fetchAllRows(buildQuery) {
+    const rows = [];
+    for (let from = 0; ; from += REMOTE_PAGE_SIZE) {
+      const { data, error } = await buildQuery().range(
+        from,
+        from + REMOTE_PAGE_SIZE - 1
+      );
+      if (error) throw error;
+      const page = data || [];
+      rows.push(...page);
+      if (page.length < REMOTE_PAGE_SIZE) return rows;
+    }
+  }
+
   async function fetchRemoteRecords(userId) {
-    const { data, error } = await client
-      .from("planner_records")
-      .select(
-        "entity_type,entity_id,payload,updated_at,deleted_at,client_id"
-      )
-      .eq("user_id", userId);
-    if (error) throw error;
+    const rows = await fetchAllRows(() =>
+      client
+        .from("planner_records")
+        .select(
+          "entity_type,entity_id,payload,updated_at,deleted_at,client_id"
+        )
+        .eq("user_id", userId)
+        .order("entity_type", { ascending: true })
+        .order("entity_id", { ascending: true })
+    );
     const records = new Map();
-    (data || []).forEach((record) => records.set(recordKey(record), record));
+    rows.forEach((record) => records.set(recordKey(record), record));
     return records;
   }
 
@@ -1561,8 +1594,14 @@
     } catch {
       localStore = null;
     }
-    const localUpdatedAt =
-      Number(localStorage.getItem(LOCAL_UPDATED_KEY)) || Date.now();
+    const storedLocalUpdatedAt =
+      Number(localStorage.getItem(LOCAL_UPDATED_KEY)) || 0;
+    // A missing key is no evidence of freshness, so the guard gets 0 rather
+    // than the Date.now() fallback used for record timestamps. An in-flight
+    // payload from the iframe is by definition current, so it carries the
+    // freshness this device is allowed to claim.
+    const localTouchedAt = pendingLocalRaw ? Date.now() : storedLocalUpdatedAt;
+    const localUpdatedAt = storedLocalUpdatedAt || Date.now();
     const localRecords = localStore
       ? storeToRecords(localStore, new Date(localUpdatedAt).toISOString(), clientId)
       : new Map();
@@ -1589,6 +1628,7 @@
       remoteFetched,
       localStore,
       lastAppliedFingerprint: localStorage.getItem(LAST_APPLIED_KEY) || "",
+      localUpdatedAt: localTouchedAt,
     });
     currentRecords = initialState.records;
     if (remoteFetched || initialState.reason === "offline-recovery") {
@@ -1812,6 +1852,9 @@
         remoteFetched = true,
         lastAppliedFingerprint = "",
         remoteTombstoneKeys = [],
+        // When this device last wrote its local store. Defaults to the local
+        // snapshot's own write time (3000), i.e. after the cloud rows (1000).
+        localUpdatedAt = 3000,
       } = {}) {
         const recordsFor = (store, time, source) =>
           store ? storeToRecords(store, new Date(time).toISOString(), source) : new Map();
@@ -1839,6 +1882,7 @@
           remoteFetched,
           localStore,
           lastAppliedFingerprint,
+          localUpdatedAt,
         });
         const store = recordsToStore(resolved.records, {});
         return {

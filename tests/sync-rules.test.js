@@ -156,6 +156,24 @@ check("기존 할 일을 고친 내용은 새로고침 후에도 살아남는다
   assert.ok(result.outboxCount > 0, "고친 내용이 업로드 대기해야 함");
 });
 
+check("며칠 전 스냅샷을 든 기기가 재접속해도 최신 클라우드를 덮지 않는다", () => {
+  const daysOldLocal = dayStore([todo("todo-1", "3일 전에 쓰던 할 일")]);
+  const result = api.simulate({
+    remoteStore: cloudStore,
+    localStore: daysOldLocal,
+    // 이 기기가 마지막으로 적용한 상태도, 로컬을 마지막으로 쓴 시각도
+    // 클라우드 행(1000)보다 앞선다.
+    lastAppliedFingerprint: api.fingerprintStore(dayStore([todo("todo-1", "3일 전 클라우드 할 일")])),
+    localUpdatedAt: 500,
+  });
+  assert.ok(result.todoTexts.includes("클라우드에 있는 할 일"));
+  assert.ok(
+    !result.todoTexts.includes("3일 전에 쓰던 할 일"),
+    "오래된 스냅샷이 최신 클라우드를 덮으면 안 됨"
+  );
+  assert.strictEqual(result.outboxCount, 0, "덮어쓰기 업로드가 없어야 함");
+});
+
 // --- Rule 2: stale local never overwrites or resurrects --------------------
 
 check("오래된 로컬 스냅샷이 클라우드를 덮어쓰지 않는다", () => {
