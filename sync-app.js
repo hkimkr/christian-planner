@@ -1,4 +1,4 @@
-// Grace Planner sync v8.3.2 — offline / logged-out edits to an existing item
+// Grace Planner sync v8.3.3 — offline / logged-out edits to an existing item
 // survive login: a row that differs from the last cached cloud copy is this
 // device's work. lastAppliedFingerprint and USER_EDITED_KEY were dropping
 // that work because a logged-out session has no apply baseline.
@@ -741,11 +741,18 @@
       }
       const baseRec = remoteRec || cachedRec;
       if (sameRecordContent(local, baseRec)) return;
+      // 캐시는 원격 행이 캐시보다 최신일 때만 "클라우드가 움직였다"는 증거다.
+      // queueRecords 가 업로드 대기 중인 편집을 기록 캐시에도 쓰므로, 업로드가
+      // 끝나기 전에 앱이 닫히면 캐시 = 내 편집본(원격보다 최신)이 된다. 그때
+      // 이 가드가 발동하면 방금 한 편집이 "다른 기기 작업"으로 오판되어 사라진다.
+      // 서버 LWW upsert 는 더 새로운 updated_at 만 받아들이므로 진짜 원격 갱신은
+      // 항상 캐시보다 최신이다.
       if (
         remoteRec &&
         cachedRec &&
         sameRecordContent(local, cachedRec) &&
-        !sameRecordContent(remoteRec, cachedRec)
+        !sameRecordContent(remoteRec, cachedRec) &&
+        timestampOf(remoteRec) >= timestampOf(cachedRec)
       ) {
         return;
       }
@@ -1987,13 +1994,15 @@
         // When this device last wrote its local store. Defaults to the local
         // snapshot's own write time (3000), i.e. after the cloud rows (1000).
         localUpdatedAt = 3000,
+        // 클라우드 행의 기록 시각. 1000이 기본값, 캐시(2000)보다 크게 주면 "클라우드가 움직였다"를 모델링.
+        remoteTime = 1000,
         // Defaults to a cloud that confirmed it is empty, so scenarios written
         // before the trust gate existed keep describing the same situation.
         remoteEmptyConfirmed = true,
       } = {}) {
         const recordsFor = (store, time, source) =>
           store ? storeToRecords(store, new Date(time).toISOString(), source) : new Map();
-        const remote = recordsFor(remoteStore, 1000, "cloud-device");
+        const remote = recordsFor(remoteStore, remoteTime, "cloud-device");
         remoteTombstoneKeys.forEach((key) => {
           const record = remote.get(key);
           if (!record) return;

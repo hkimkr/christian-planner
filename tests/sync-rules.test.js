@@ -238,6 +238,37 @@ check("아직 저장되지 않은 in-flight 편집은 편집 키가 없어도 �
   assert.strictEqual(api.localEditEvidenceAt(storedRaw), 0);
 });
 
+check("업로드 전에 앱이 닫혀도 폰에서 고친 할 일은 재진입 때 유지된다", () => {
+  // queueRecords 는 대기 중 편집을 기록 캐시(RECORDS_STORE)에도 쓴다. 업로드가 끝나기
+  // 전에 앱이 닫히면 다음 연결에서 캐시 = 내 편집본, 원격 = 옛 행이 된다. 캐시가
+  // 원격보다 새것이면 "클라우드가 움직였다"는 증거가 아니라 이 기기의 대기 편집이다.
+  const edited = dayStore([todo("todo-1", "폰에서 고친 할 일")]);
+  const result = api.simulate({
+    remoteStore: cloudStore,          // 옛 서버 상태 (t=1000)
+    cachedStore: edited,              // 오염된 캐시 (t=2000)
+    outboxStore: edited,              // 업로드 대기 (t=4000)
+    outboxIntent: true,
+    localStore: edited,
+    lastAppliedFingerprint: api.fingerprintStore(edited),
+    localUpdatedAt: 5000,
+  });
+  assert.ok(result.todoTexts.includes("폰에서 고친 할 일"), "대기 중 편집이 유지되어야 함");
+  assert.ok(!result.todoTexts.includes("클라우드에 있는 할 일"), "옛 내용으로 되돌아가면 안 됨");
+});
+
+check("아웃박스가 유실돼도 오염된 캐시+편집 키만으로 폰 편집이 살아남는다", () => {
+  const edited = dayStore([todo("todo-1", "폰에서 고친 할 일")]);
+  const result = api.simulate({
+    remoteStore: cloudStore,
+    cachedStore: edited,
+    localStore: edited,
+    // 마지막으로 화면에 적용된 것은 편집 전 클라우드 상태다.
+    lastAppliedFingerprint: api.fingerprintStore(cloudStore),
+    localUpdatedAt: 5000,
+  });
+  assert.ok(result.todoTexts.includes("폰에서 고친 할 일"));
+});
+
 // --- Rule 2: stale local never overwrites or resurrects --------------------
 
 check("오래된 로컬 스냅샷이 클라우드를 덮어쓰지 않는다", () => {
